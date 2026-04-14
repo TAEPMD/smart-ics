@@ -649,6 +649,16 @@
 
     <!-- Mobile Bottom Navigation (Tab Bar) -->
     <nav class="md:hidden glass fixed bottom-0 w-full z-50 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.05)] border-t border-slate-200/50">
+        <div class="flex items-center justify-end gap-2 px-3 pt-2">
+            <button onclick="switchTab('radio')" class="mobile-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 transition-colors" data-target="radio">
+                <i data-lucide="radio" class="w-4 h-4"></i>
+                <span class="text-[10px] font-bold">ข่ายวิทยุ</span>
+            </button>
+            <button id="mobile-nav-users" onclick="switchTab('users')" class="mobile-nav-btn hidden items-center gap-1.5 px-3 py-2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 transition-colors" data-target="users">
+                <i data-lucide="user-cog" class="w-4 h-4"></i>
+                <span class="text-[10px] font-bold">ผู้ใช้งาน</span>
+            </button>
+        </div>
         <div class="flex justify-around items-end pt-2 pb-1 px-1">
             <button onclick="switchTab('dashboard')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="dashboard">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -3250,9 +3260,19 @@
 
         function renderUsers() {
             const navUsers = document.getElementById('nav-users');
+            const mobileNavUsers = document.getElementById('mobile-nav-users');
             if(navUsers) {
                 if(hasPermission('MANAGE_USERS')) navUsers.classList.remove('hidden');
                 else navUsers.classList.add('hidden');
+            }
+            if(mobileNavUsers) {
+                if(hasPermission('MANAGE_USERS')) {
+                    mobileNavUsers.classList.remove('hidden');
+                    mobileNavUsers.classList.add('inline-flex');
+                } else {
+                    mobileNavUsers.classList.add('hidden');
+                    mobileNavUsers.classList.remove('inline-flex');
+                }
             }
 
             const usersHtml = Object.keys(appData.users).map(pin => {
