@@ -6,7 +6,7 @@
     <title>Smart ICS - ระบบบัญชาการเหตุการณ์อัจฉริยะ</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script>
-        window.SMART_ICS_APPS_SCRIPT_URL = "https://script.google.com/macros/s/https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbygfkARxx8jqCxzaOKG37E81gtagpjdAZuY4Hjoqws7var8OhpszIDiglYC1Vvw6WNx/exec/exec/exec";
+        window.SMART_ICS_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygfkARxx8jqCxzaOKG37E81gtagpjdAZuY4Hjoqws7var8OhpszIDiglYC1Vvw6WNx/exec";
     </script>
     <script>
         function loadScript(src, callback, errorCallback) {
@@ -1022,9 +1022,26 @@
         let tacMapTileLayer = null;
         let lastActionButton = null;
 
+        function normalizeAppsScriptWebAppUrl(url) {
+            const raw = String(url || '').trim();
+            if (!raw) return '';
+
+            const decoded = (() => {
+                try { return decodeURIComponent(raw); } catch (err) { return raw; }
+            })();
+
+            const pattern = /https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/(exec|dev)/i;
+            const match = decoded.match(pattern);
+            if (!match) return '';
+
+            let normalized = match[0].replace(/\/+$/, '');
+            normalized = normalized.replace(/\/dev$/i, '/exec');
+            return normalized;
+        }
+
         function setConfiguredAppsScriptWebAppUrl(url) {
             try {
-                const normalized = String(url || '').trim();
+                const normalized = normalizeAppsScriptWebAppUrl(url);
                 if (normalized) localStorage.setItem(APPS_SCRIPT_WEBAPP_URL_STORAGE_KEY, normalized);
                 else localStorage.removeItem(APPS_SCRIPT_WEBAPP_URL_STORAGE_KEY);
             } catch (err) {}
@@ -1046,8 +1063,8 @@
                 fromStorage = '';
             }
 
-            const resolved = String(fromQuery || fromGlobal || fromStorage || '').trim();
-            if (fromQuery && resolved) setConfiguredAppsScriptWebAppUrl(resolved);
+            const resolved = normalizeAppsScriptWebAppUrl(fromQuery) || normalizeAppsScriptWebAppUrl(fromGlobal) || normalizeAppsScriptWebAppUrl(fromStorage);
+            if (resolved) setConfiguredAppsScriptWebAppUrl(resolved);
             return resolved;
         }
 
