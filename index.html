@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script>
         window.SMART_ICS_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygfkARxx8jqCxzaOKG37E81gtagpjdAZuY4Hjoqws7var8OhpszIDiglYC1Vvw6WNx/exec";
+        window.SMART_ICS_BACKEND = "firebase";
+        window.SMART_ICS_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyA5Gki5ieXBTOTHVAQi9O1LmcMpwcIPqYM",
+            authDomain: "smart-ics-3dfe0.firebaseapp.com",
+            projectId: "smart-ics-3dfe0",
+            storageBucket: "smart-ics-3dfe0.firebasestorage.app",
+            messagingSenderId: "524036893924",
+            appId: "1:524036893924:web:b026e14d2ead07597f90f1"
+        };
     </script>
     <script>
         function loadScript(src, callback, errorCallback) {
@@ -35,6 +44,14 @@
                 loadScript('https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js', () => console.log('Leaflet fallback loaded'), () => {
                     console.warn('Unable to load Leaflet map library from CDN.');
                 });
+            });
+
+            loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js', () => console.log('Firebase app loaded'), () => {
+                console.warn('Unable to load Firebase app SDK from CDN.');
+            });
+
+            loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js', () => console.log('Firebase Firestore loaded'), () => {
+                console.warn('Unable to load Firebase Firestore SDK from CDN.');
             });
         }
 
@@ -1012,6 +1029,8 @@
         const AUTH_UNLOCKED_SESSION_KEY = 'smart_ics_auth_unlocked';
         const THEME_MODE_STORAGE_KEY = 'smart_ics_theme_mode';
         const APPS_SCRIPT_WEBAPP_URL_STORAGE_KEY = 'smart_ics_apps_script_webapp_url';
+        const BACKEND_MODE_STORAGE_KEY = 'smart_ics_backend_mode';
+        const FIREBASE_CONFIG_STORAGE_KEY = 'smart_ics_firebase_config';
         const DEFAULT_LOADING_TEXT = 'กำลังโหลดข้อมูลล่าสุด...';
         const CLOSING_INCIDENT_TEXT = 'กำลังปิดสถานการณ์...';
         const REALTIME_POLL_MS = 10000;
@@ -1031,6 +1050,103 @@
         let tacMapColdCircle = null;
         let tacMapTileLayer = null;
         let lastActionButton = null;
+        let firebaseInitPromise = null;
+        let firestoreDb = null;
+        let firestoreRealtimeUnsubscribers = [];
+
+        function normalizeBackendMode(value) {
+            const normalized = String(value || '').trim().toLowerCase();
+            if (['firebase', 'firestore', 'fs'].includes(normalized)) return 'firebase';
+            return 'apps-script';
+        }
+
+        function setConfiguredBackendMode(mode) {
+            const normalized = normalizeBackendMode(mode);
+            try { localStorage.setItem(BACKEND_MODE_STORAGE_KEY, normalized); } catch (err) {}
+        }
+
+        function getConfiguredBackendMode() {
+            let fromQuery = '';
+            try {
+                fromQuery = new URLSearchParams(window.location.search).get('backend') || '';
+            } catch (err) {
+                fromQuery = '';
+            }
+
+            let fromStorage = '';
+            try {
+                fromStorage = localStorage.getItem(BACKEND_MODE_STORAGE_KEY) || '';
+            } catch (err) {
+                fromStorage = '';
+            }
+
+            const fromGlobal = (typeof window.SMART_ICS_BACKEND === 'string') ? window.SMART_ICS_BACKEND : '';
+            const resolved = normalizeBackendMode(fromQuery || fromGlobal || fromStorage || 'apps-script');
+            setConfiguredBackendMode(resolved);
+            return resolved;
+        }
+
+        function normalizeFirebaseConfig(raw) {
+            let config = raw;
+            if (typeof raw === 'string') {
+                try {
+                    config = JSON.parse(raw);
+                } catch (err) {
+                    return null;
+                }
+            }
+            if (!config || typeof config !== 'object') return null;
+
+            const normalized = {
+                apiKey: String(config.apiKey || '').trim(),
+                authDomain: String(config.authDomain || '').trim(),
+                projectId: String(config.projectId || '').trim(),
+                storageBucket: String(config.storageBucket || '').trim(),
+                messagingSenderId: String(config.messagingSenderId || '').trim(),
+                appId: String(config.appId || '').trim()
+            };
+
+            if (!normalized.apiKey || !normalized.projectId || !normalized.appId) return null;
+            return normalized;
+        }
+
+        function setConfiguredFirebaseConfig(config) {
+            try {
+                const normalized = normalizeFirebaseConfig(config);
+                if (normalized) localStorage.setItem(FIREBASE_CONFIG_STORAGE_KEY, JSON.stringify(normalized));
+                else localStorage.removeItem(FIREBASE_CONFIG_STORAGE_KEY);
+            } catch (err) {}
+        }
+
+        function getConfiguredFirebaseConfig() {
+            let fromQuery = '';
+            try {
+                fromQuery = new URLSearchParams(window.location.search).get('firebase') || '';
+            } catch (err) {
+                fromQuery = '';
+            }
+
+            let parsedQuery = null;
+            if (fromQuery) {
+                try {
+                    parsedQuery = JSON.parse(decodeURIComponent(fromQuery));
+                } catch (err) {
+                    parsedQuery = null;
+                }
+            }
+
+            let fromStorage = null;
+            try {
+                fromStorage = JSON.parse(localStorage.getItem(FIREBASE_CONFIG_STORAGE_KEY) || 'null');
+            } catch (err) {
+                fromStorage = null;
+            }
+
+            const fromGlobal = (typeof window.SMART_ICS_FIREBASE_CONFIG === 'object') ? window.SMART_ICS_FIREBASE_CONFIG : null;
+            const resolved = normalizeFirebaseConfig(parsedQuery) || normalizeFirebaseConfig(fromGlobal) || normalizeFirebaseConfig(fromStorage);
+            if (resolved) setConfiguredFirebaseConfig(resolved);
+            return resolved;
+        }
 
         function normalizeAppsScriptWebAppUrl(url) {
             const raw = String(url || '').trim();
@@ -1076,6 +1192,311 @@
             const resolved = normalizeAppsScriptWebAppUrl(fromQuery) || normalizeAppsScriptWebAppUrl(fromGlobal) || normalizeAppsScriptWebAppUrl(fromStorage);
             if (resolved) setConfiguredAppsScriptWebAppUrl(resolved);
             return resolved;
+        }
+
+        function stopFirestoreRealtimeSync() {
+            if (!Array.isArray(firestoreRealtimeUnsubscribers)) return;
+            firestoreRealtimeUnsubscribers.forEach((unsubscribe) => {
+                try { if (typeof unsubscribe === 'function') unsubscribe(); } catch (err) {}
+            });
+            firestoreRealtimeUnsubscribers = [];
+        }
+
+        function ensureFirebaseSdkLoaded() {
+            return new Promise((resolve, reject) => {
+                if (window.firebase && window.firebase.apps) {
+                    resolve();
+                    return;
+                }
+
+                loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js', () => {
+                    loadScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js', () => {
+                        resolve();
+                    }, () => reject(new Error('โหลด Firebase Firestore SDK ไม่สำเร็จ')));
+                }, () => reject(new Error('โหลด Firebase App SDK ไม่สำเร็จ')));
+            });
+        }
+
+        function initializeFirebaseBackend() {
+            if (firebaseInitPromise) return firebaseInitPromise;
+            firebaseInitPromise = (async () => {
+                const config = getConfiguredFirebaseConfig();
+                if (!config) {
+                    throw new Error('ยังไม่ได้ตั้งค่า Firebase Config (กำหนด SMART_ICS_FIREBASE_CONFIG หรือเติม ?firebase=<json>)');
+                }
+
+                await ensureFirebaseSdkLoaded();
+
+                if (!window.firebase) {
+                    throw new Error('Firebase SDK ไม่พร้อมใช้งาน');
+                }
+
+                const existingApp = window.firebase.apps && window.firebase.apps.length > 0
+                    ? window.firebase.apps[0]
+                    : window.firebase.initializeApp(config);
+                firestoreDb = existingApp.firestore();
+                return firestoreDb;
+            })().catch((err) => {
+                firebaseInitPromise = null;
+                throw err;
+            });
+
+            return firebaseInitPromise;
+        }
+
+        async function getFirestoreDb() {
+            if (firestoreDb) return firestoreDb;
+            return initializeFirebaseBackend();
+        }
+
+        function docToRecord(snapshot) {
+            const data = snapshot && typeof snapshot.data === 'function' ? snapshot.data() || {} : {};
+            if (data && !Object.prototype.hasOwnProperty.call(data, 'ID') && !Object.prototype.hasOwnProperty.call(data, 'id')) {
+                data.ID = snapshot.id;
+            }
+            return data;
+        }
+
+        async function loadFirestoreCollection(collectionName) {
+            const db = await getFirestoreDb();
+            const snap = await db.collection(collectionName).get();
+            return snap.docs.map(docToRecord);
+        }
+
+        async function firestoreGetInitialData() {
+            const result = await Promise.all([
+                loadFirestoreCollection('users'),
+                loadFirestoreCollection('incidents'),
+                loadFirestoreCollection('logs'),
+                loadFirestoreCollection('personnel'),
+                loadFirestoreCollection('zoneStaff'),
+                loadFirestoreCollection('zoneRecords'),
+                loadFirestoreCollection('ics'),
+                loadFirestoreCollection('radios')
+            ]);
+
+            return {
+                Users: result[0],
+                Incidents: result[1],
+                Logs: result[2],
+                Personnel: result[3],
+                ZoneStaff: result[4],
+                ZoneRecords: result[5],
+                ICS: result[6],
+                Radios: result[7]
+            };
+        }
+
+        function asDocId(value) {
+            return String(value == null ? '' : value).trim();
+        }
+
+        async function invokeFirestoreMethod(methodName, args) {
+            const db = await getFirestoreDb();
+            const method = String(methodName || '');
+            const callArgs = Array.isArray(args) ? args : [];
+
+            if (method === 'getInitialData') {
+                return firestoreGetInitialData();
+            }
+
+            if (method === 'saveNewIncident') {
+                const inc = callArgs[0] || {};
+                const docId = asDocId(inc.id);
+                await db.collection('incidents').doc(docId).set({
+                    ID: docId,
+                    Name: inc.name || '',
+                    Level: Number(inc.level || 0),
+                    StartTime: inc.startTime || '',
+                    Date: inc.date || '',
+                    Duration: '',
+                    ClosedBy: '',
+                    Status: 'Active',
+                    SafetyStatus: inc.safetyStatus || 'moderate',
+                    SafetyUpdatedAt: inc.safetyUpdatedAt || '',
+                    SafetyUpdatedBy: inc.safetyUpdatedBy || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'closeIncident') {
+                await db.collection('incidents').doc(asDocId(callArgs[0])).set({
+                    Status: 'Closed',
+                    Duration: callArgs[1] || '',
+                    ClosedBy: callArgs[2] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updateIncidentSafetyStatus') {
+                await db.collection('incidents').doc(asDocId(callArgs[0])).set({
+                    SafetyStatus: callArgs[1] || 'moderate',
+                    SafetyUpdatedAt: callArgs[2] || '',
+                    SafetyUpdatedBy: callArgs[3] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'addLogRecord') {
+                const explicitLogId = asDocId(callArgs[5] || '');
+                const docId = explicitLogId || asDocId(Date.now() + '_' + Math.floor(Math.random() * 100000));
+                await db.collection('logs').doc(docId).set({
+                    ID: docId,
+                    IncidentID: callArgs[0] || '',
+                    Time: callArgs[1] || '',
+                    Category: callArgs[2] || '',
+                    Message: callArgs[3] || '',
+                    Author: callArgs[4] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'registerAgency') {
+                const personnelId = asDocId(callArgs[7] || Date.now());
+                await db.collection('personnel').doc(personnelId).set({
+                    ID: personnelId,
+                    IncidentID: callArgs[0] || '',
+                    Agency: callArgs[1] || '',
+                    Name: callArgs[2] || '',
+                    Phone: callArgs[3] || '',
+                    Specialty: callArgs[4] || '',
+                    Status: callArgs[5] || 'Deploy',
+                    Time: callArgs[6] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updatePersonnelStatus') {
+                await db.collection('personnel').doc(asDocId(callArgs[0])).set({
+                    Status: callArgs[1] || '',
+                    Time: callArgs[2] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'addZoneStaff') {
+                const docId = asDocId(callArgs[3] || Date.now());
+                await db.collection('zoneStaff').doc(docId).set({
+                    ID: docId,
+                    IncidentID: callArgs[0] || '',
+                    AgencyId: callArgs[1] || '',
+                    Name: callArgs[2] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'addZoneRecord') {
+                const docId = asDocId(callArgs[6] || Date.now());
+                await db.collection('zoneRecords').doc(docId).set({
+                    ID: docId,
+                    IncidentID: callArgs[0] || '',
+                    PersonId: callArgs[1] || '',
+                    Name: callArgs[2] || '',
+                    AgencyName: callArgs[3] || '',
+                    Zone: callArgs[4] || '',
+                    TimeIn: callArgs[5] || '',
+                    TimeOut: '',
+                    Status: 'Active'
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updateZoneRecordOut') {
+                await db.collection('zoneRecords').doc(asDocId(callArgs[0])).set({
+                    TimeOut: callArgs[1] || '',
+                    Status: 'Completed'
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updateICSNode') {
+                const incidentId = asDocId(callArgs[0]);
+                const section = String(callArgs[1] || '').trim();
+                const index = String(callArgs[2] == null ? '' : callArgs[2]).trim();
+                const docId = `${incidentId}_${section}_${index || '0'}`;
+                await db.collection('ics').doc(docId).set({
+                    ID: docId,
+                    IncidentID: incidentId,
+                    Section: section,
+                    Index: index,
+                    Title: callArgs[3] || '',
+                    Name: callArgs[4] || '',
+                    Phone: callArgs[5] || '',
+                    Color: callArgs[6] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updateRadioChannel') {
+                await db.collection('radios').doc(asDocId(callArgs[0])).set({
+                    ID: asDocId(callArgs[0]),
+                    Name: callArgs[1] || '',
+                    Frequency: callArgs[2] || '',
+                    Assigned: callArgs[3] || '',
+                    Status: callArgs[4] || 'Standby'
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'deleteRadioChannel') {
+                await db.collection('radios').doc(asDocId(callArgs[0])).delete();
+                return true;
+            }
+
+            if (method === 'addNewUser') {
+                await db.collection('users').doc(asDocId(callArgs[1])).set({
+                    ID: asDocId(callArgs[1]),
+                    PIN: callArgs[0] || '',
+                    Name: callArgs[2] || '',
+                    Role: callArgs[3] || 'Staff',
+                    Agency: callArgs[4] || '-',
+                    Initial: callArgs[5] || '?'
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'updateUser') {
+                await db.collection('users').doc(asDocId(callArgs[0])).set({
+                    Name: callArgs[1] || '',
+                    Role: callArgs[2] || 'Staff',
+                    Agency: callArgs[3] || '-',
+                    Initial: callArgs[4] || '?'
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'resetUserPin') {
+                await db.collection('users').doc(asDocId(callArgs[0])).set({
+                    PIN: callArgs[1] || ''
+                }, { merge: true });
+                return true;
+            }
+
+            if (method === 'deleteUser') {
+                await db.collection('users').doc(asDocId(callArgs[0])).delete();
+                return true;
+            }
+
+            throw new Error('Firestore method not supported: ' + method);
+        }
+
+        async function invokeBackendMethod(methodName, args) {
+            const backendMode = getConfiguredBackendMode();
+            const callArgs = Array.isArray(args) ? args : [];
+
+            if (backendMode === 'firebase') {
+                try {
+                    return await invokeFirestoreMethod(methodName, callArgs);
+                } catch (err) {
+                    const appsScriptUrl = getConfiguredAppsScriptWebAppUrl();
+                    if (appsScriptUrl) {
+                        return invokeAppsScriptApiMethod(methodName, callArgs);
+                    }
+                    throw err;
+                }
+            }
+
+            return invokeAppsScriptApiMethod(methodName, callArgs);
         }
 
         async function invokeAppsScriptApiMethod(methodName, args) {
@@ -1138,13 +1559,13 @@
 
                     return function() {
                         const callArgs = Array.prototype.slice.call(arguments || []);
-                        invokeAppsScriptApiMethod(prop, callArgs)
+                        invokeBackendMethod(prop, callArgs)
                             .then((result) => {
                                 if (successHandler) successHandler(result);
                             })
                             .catch((err) => {
                                 if (failureHandler) failureHandler(err);
-                                else console.error('[Smart ICS] Apps Script API error:', err);
+                                else console.error('[Smart ICS] backend API error:', err);
                             });
                         return undefined;
                     };
@@ -1159,10 +1580,8 @@
                 return true;
             }
 
-            const webAppUrl = getConfiguredAppsScriptWebAppUrl();
-            if (!webAppUrl) {
-                return false;
-            }
+            const backendMode = getConfiguredBackendMode();
+            if (backendMode !== 'firebase' && !getConfiguredAppsScriptWebAppUrl()) return false;
 
             window.google = window.google || {};
             window.google.script = window.google.script || {};
@@ -2276,36 +2695,27 @@
 
         function loadDataFromServer(callback) {
             const currentTab = localStorage.getItem('smart_ics_tab') || 'home';
-            
-            if (typeof google !== 'undefined') {
-                google.script.run
-                    .withSuccessHandler((data) => {
-                        try {
-                            processServerData(data);
-                            restoreSavedSession(currentTab);
-                        } catch (e) {
-                            console.error('[Smart ICS] loadDataFromServer error:', e);
-                            showGlobalError('DATA_PARSE', 'เกิดข้อผิดพลาดในการประมวลผลข้อมูล: ' + (e && e.message ? e.message : String(e)), () => loadDataFromServer());
-                        } 
-                        finally {
-                            document.getElementById('loading-screen').classList.add('hidden');
-                            if(callback) callback();
-                        }
-                    })
-                    .withFailureHandler((err) => {
-                        document.getElementById('loading-screen').classList.add('hidden');
-                        if (callback) callback();
-                        showGlobalError('DB_CONN', 'การเชื่อมต่อฐานข้อมูลขัดข้อง: ' + (err && err.message ? err.message : err), () => loadDataFromServer());
-                    })
-                    .getInitialData();
-            } else {
-                setTimeout(() => {
+
+            invokeBackendMethod('getInitialData', [])
+                .then((data) => {
+                    try {
+                        processServerData(data);
+                        restoreSavedSession(currentTab);
+                    } catch (e) {
+                        console.error('[Smart ICS] loadDataFromServer error:', e);
+                        showGlobalError('DATA_PARSE', 'เกิดข้อผิดพลาดในการประมวลผลข้อมูล: ' + (e && e.message ? e.message : String(e)), () => loadDataFromServer());
+                    }
+                })
+                .catch((err) => {
+                    console.warn('[Smart ICS] backend unavailable, fallback preview mode:', err);
                     appData.users = { '1669': { id: 'u1', name: 'เต้ (Preview)', role: 'Admin', agency: 'สพฉ.', initial: 'ด' } };
                     restoreSavedSession(currentTab);
+                    showGlobalError('DB_CONN', 'การเชื่อมต่อฐานข้อมูลขัดข้อง: ' + (err && err.message ? err.message : err), () => loadDataFromServer());
+                })
+                .finally(() => {
                     document.getElementById('loading-screen').classList.add('hidden');
-                    if(callback) callback();
-                }, 800);
-            }
+                    if (callback) callback();
+                });
         }
 
         function processServerData(data) {
@@ -2349,36 +2759,19 @@
         function callBackend(methodName, args, onSuccess, silent = false, triggerButton = null) {
             const processingButton = beginButtonProcessing(triggerButton || lastActionButton);
             if (!silent) document.getElementById('loading-screen').classList.remove('hidden');
-            
-            if (typeof google !== 'undefined') {
-                try {
-                    var runner = google.script.run
-                        .withSuccessHandler((res) => {
-                            if (!silent) document.getElementById('loading-screen').classList.add('hidden');
-                            endButtonProcessing(processingButton);
-                            if (onSuccess) onSuccess(res);
-                        })
-                        .withFailureHandler((err) => {
-                            console.error(err);
-                            if (!silent) document.getElementById('loading-screen').classList.add('hidden');
-                            endButtonProcessing(processingButton);
-                            showGlobalError('BACKEND_ERR', 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: ' + (err && err.message ? err.message : err), () => callBackend(methodName, args, onSuccess, silent, null));
-                        });
-                    
-                    // เรียกใช้ฟังก์ชันเซิร์ฟเวอร์อย่างปลอดภัย
-                    runner[methodName](...(args || []));
-                } catch (e) {
-                    console.error("Backend Error: ", e);
+
+            invokeBackendMethod(methodName, args || [])
+                .then((res) => {
                     if (!silent) document.getElementById('loading-screen').classList.add('hidden');
                     endButtonProcessing(processingButton);
-                }
-            } else {
-                setTimeout(() => { 
+                    if (onSuccess) onSuccess(res);
+                })
+                .catch((err) => {
+                    console.error(err);
                     if (!silent) document.getElementById('loading-screen').classList.add('hidden');
                     endButtonProcessing(processingButton);
-                    if (onSuccess) onSuccess(); 
-                }, 500);
-            }
+                    showGlobalError('BACKEND_ERR', 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: ' + (err && err.message ? err.message : err), () => callBackend(methodName, args, onSuccess, silent, null));
+                });
         }
 
         // --- 3. UTILITY HELPERS ---
@@ -2459,8 +2852,77 @@
             renderHome();
         }
 
+        async function startFirestoreRealtimeSync() {
+            stopFirestoreRealtimeSync();
+            const db = await getFirestoreDb();
+
+            const collectionMap = {
+                users: 'Users',
+                incidents: 'Incidents',
+                logs: 'Logs',
+                personnel: 'Personnel',
+                zoneStaff: 'ZoneStaff',
+                zoneRecords: 'ZoneRecords',
+                ics: 'ICS',
+                radios: 'Radios'
+            };
+
+            const latest = {};
+            const readyKeys = {};
+            const keys = Object.keys(collectionMap);
+
+            const applyRealtime = () => {
+                const allReady = keys.every((k) => readyKeys[k]);
+                if (!allReady) return;
+
+                const payload = {};
+                keys.forEach((key) => {
+                    payload[collectionMap[key]] = latest[key] || [];
+                });
+
+                try {
+                    const tab = localStorage.getItem('smart_ics_tab') || 'home';
+                    const preferredIncidentId = appData.activeIncident ? appData.activeIncident.id : '';
+                    const nextSignature = buildServerDataSignature(payload);
+                    const hasChanged = nextSignature !== realtimeDataSignature;
+                    if (!hasChanged) return;
+
+                    processServerData(payload);
+                    if (preferredIncidentId) setSelectedIncident(preferredIncidentId);
+                    realtimeDataSignature = nextSignature;
+                    realtimeLastSyncAt = getThTime();
+                    renderRealtimePulseStatus();
+                    if (currentUser) renderCurrentTabAfterRealtimeSync(tab);
+                } catch (err) {
+                    console.warn('[Smart ICS] Firestore realtime apply error:', err);
+                }
+            };
+
+            keys.forEach((collectionName) => {
+                const unsubscribe = db.collection(collectionName).onSnapshot((snap) => {
+                    latest[collectionName] = snap.docs.map(docToRecord);
+                    readyKeys[collectionName] = true;
+                    // Skip re-render when snapshot originates from a local pending write —
+                    // the optimistic UI update already applied the change on this device.
+                    // Remote-device writes and server-confirmed snapshots have hasPendingWrites=false.
+                    if (snap.metadata.hasPendingWrites) return;
+                    applyRealtime();
+                }, (err) => {
+                    console.warn('[Smart ICS] Firestore realtime listener failed for', collectionName, err);
+                });
+                firestoreRealtimeUnsubscribers.push(unsubscribe);
+            });
+        }
+
         function refreshActiveRealtime(forceApply = false) {
-            if (typeof google === 'undefined' || !currentUser) return;
+            if (!currentUser) return;
+
+            if (getConfiguredBackendMode() === 'firebase') {
+                // Firestore uses onSnapshot listeners, no polling required.
+                return;
+            }
+
+            if (typeof google === 'undefined') return;
             const tab = localStorage.getItem('smart_ics_tab') || 'home';
 
             const preferredIncidentId = appData.activeIncident ? appData.activeIncident.id : '';
@@ -2561,18 +3023,16 @@
             
             document.getElementById('loading-screen').classList.remove('hidden');
             
-            if (typeof google !== 'undefined') {
-                google.script.run.withSuccessHandler((data) => {
+            invokeBackendMethod('getInitialData', [])
+                .then((data) => {
                     processServerData(data);
                     finishLogin(pin, errorMsg, loginButton);
-                }).withFailureHandler((err) => {
+                })
+                .catch((err) => {
                     document.getElementById('loading-screen').classList.add('hidden');
                     endButtonProcessing(loginButton);
                     showGlobalError('LOGIN_FETCH', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ' + (err && err.message ? err.message : err), null);
-                }).getInitialData();
-            } else {
-                setTimeout(() => { finishLogin(pin, errorMsg, loginButton); }, 500);
-            }
+                });
         }
 
         function finishLogin(pin, errorMsg, loginButton) {
@@ -2656,6 +3116,14 @@
             const mobIcon = document.getElementById('refresh-icon-mob');
             if(deskIcon) deskIcon.classList.add('animate-spin');
             if(mobIcon) mobIcon.classList.add('animate-spin');
+
+            if (getConfiguredBackendMode() === 'firebase') {
+                loadDataFromServer(() => {
+                    if(deskIcon) deskIcon.classList.remove('animate-spin');
+                    if(mobIcon) mobIcon.classList.remove('animate-spin');
+                });
+                return;
+            }
 
             if (manualSyncInterval) clearInterval(manualSyncInterval);
             if (manualSyncStopTimer) clearTimeout(manualSyncStopTimer);
@@ -3614,9 +4082,9 @@
                 return;
             }
 
-            setTimeout(() => {
-                finishClose();
-            }, 500);
+            invokeBackendMethod('closeIncident', [incId, durationStr, currentUser.name])
+                .then(() => { finishClose(); })
+                .catch((err) => { handleCloseError(err); });
         }
 
         function handleAddLog(e) {
@@ -3710,7 +4178,7 @@
             e.target.reset(); document.getElementById('regModal').classList.add('hidden');
             renderPersonnel(); renderDashboard(); renderZone(); renderLogs();
 
-            callBackend('registerAgency', [appData.activeIncident.id, agency, name, phone, specialty, 'Deploy', eventTime], null, true);
+            callBackend('registerAgency', [appData.activeIncident.id, agency, name, phone, specialty, 'Deploy', eventTime, newAgencyId], null, true);
             callBackend('addLogRecord', [appData.activeIncident.id, eventTime, 'Logistics', `ลงทะเบียนหน่วยงาน: ${agency}`, currentUser.name], null, true);
         }
 
@@ -3730,7 +4198,7 @@
             document.activeElement.blur();
             renderZone(); renderLogs();
 
-            callBackend('addZoneStaff', [appData.activeIncident.id, String(agencyId), name], null, true);
+            callBackend('addZoneStaff', [appData.activeIncident.id, String(agencyId), name, zoneStaffRecord.id], null, true);
             callBackend('addLogRecord', [appData.activeIncident.id, eventTime, 'Logistics', `ดึงชื่อเข้าทีม: ${name}`, currentUser.name], null, true);
         }
 
@@ -3750,7 +4218,7 @@
             
             renderZone(); renderLogs(); renderDashboard();
 
-            callBackend('addZoneRecord', [appData.activeIncident.id, staffMember.id, staffMember.name, agency.agency, zoneName, eventTime], null, true);
+            callBackend('addZoneRecord', [appData.activeIncident.id, staffMember.id, staffMember.name, agency.agency, zoneName, eventTime, zoneRecord.id], null, true);
             callBackend('addLogRecord', [appData.activeIncident.id, eventTime, 'Operations', `${staffMember.name} เข้า ${zoneName}`, currentUser.name], null, true);
         }
 
@@ -3951,8 +4419,20 @@
                 realtimeLastSyncAt = getThTime();
                 renderRealtimePulseStatus();
             });
-            if (realtimePollTimer) clearInterval(realtimePollTimer);
-            realtimePollTimer = setInterval(() => refreshActiveRealtime(false), REALTIME_POLL_MS);
+
+            if (realtimePollTimer) {
+                clearInterval(realtimePollTimer);
+                realtimePollTimer = null;
+            }
+
+            if (getConfiguredBackendMode() === 'firebase') {
+                startFirestoreRealtimeSync().catch((err) => {
+                    console.warn('[Smart ICS] Firestore realtime startup failed:', err);
+                });
+            } else {
+                stopFirestoreRealtimeSync();
+                realtimePollTimer = setInterval(() => refreshActiveRealtime(false), REALTIME_POLL_MS);
+            }
         };
     </script>
 </body>
