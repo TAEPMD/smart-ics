@@ -276,9 +276,10 @@
         <div class="hidden md:flex justify-between items-center bg-white px-8 py-3 border-b border-slate-200 sticky top-0 z-30 shadow-sm">
             <div id="desktop-header-title">
                 <h2 class="text-xl font-bold text-slate-800 tracking-tight" id="header-incident-name">หน้าหลัก (Home)</h2>
-                <div class="flex items-center gap-3 mt-1">
+                <div class="flex items-center gap-3 mt-1 flex-wrap">
                     <p class="text-sm text-slate-500 font-medium" id="header-incident-id">ยินดีต้อนรับ</p>
                     <div id="desktop-header-status"></div>
+                    <div id="sync-health-header" class="hidden"></div>
                 </div>
             </div>
             
@@ -325,7 +326,10 @@
                                 <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>
                                 สถานการณ์ปัจจุบัน (Active)
                             </h3>
-                            <span id="active-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                            <div class="flex flex-wrap items-center justify-end gap-2">
+                                <span id="active-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                                <div id="sync-health-home" class="hidden"></div>
+                            </div>
                         </div>
                         <div id="home-active-container"></div>
                     </div>
@@ -371,7 +375,10 @@
                 <div class="hidden md:flex justify-between items-center gap-3 mb-4">
                     <div id="dashboard-incident-switcher-desk" class="flex-1"></div>
                     <div class="flex justify-end items-center gap-3">
-                        <span id="dash-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            <span id="dash-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                            <div id="sync-health-dash" class="hidden"></div>
+                        </div>
                          <button onclick="handleAiAction('SITREP')" class="bg-gradient-to-r from-indigo-100 to-purple-100 hover:from-indigo-200 hover:to-purple-200 text-indigo-800 border border-indigo-200 px-4 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 flex items-center justify-center gap-2 transition-all">
                             ✨ สรุปสถานการณ์ด้วย AI (SitRep)
                         </button>
@@ -1053,11 +1060,143 @@
         let firebaseInitPromise = null;
         let firestoreDb = null;
         let firestoreRealtimeUnsubscribers = [];
+        const syncHealthState = {
+            firebase: { state: 'checking', updatedAt: '--:--', message: 'กำลังเชื่อมต่อ Firebase' },
+            mirror: { state: 'checking', updatedAt: '--:--', message: 'กำลังตรวจสอบ Google Sheets mirror' }
+        };
+        const FIRESTORE_MUTATION_METHODS = new Set([
+            'saveNewIncident',
+            'closeIncident',
+            'updateIncidentSafetyStatus',
+            'addLogRecord',
+            'registerAgency',
+            'updatePersonnelStatus',
+            'addZoneStaff',
+            'addZoneRecord',
+            'updateZoneRecordOut',
+            'updateICSNode',
+            'updateRadioChannel',
+            'deleteRadioChannel',
+            'addNewUser',
+            'updateUser',
+            'resetUserPin',
+            'deleteUser'
+        ]);
 
         function normalizeBackendMode(value) {
             const normalized = String(value || '').trim().toLowerCase();
             if (['firebase', 'firestore', 'fs'].includes(normalized)) return 'firebase';
             return 'apps-script';
+        }
+
+        function isAdminUser() {
+            return !!(currentUser && currentUser.role === 'Admin');
+        }
+
+        function setSyncHealthStatus(channel, state, message, updatedAt) {
+            if (!syncHealthState[channel]) return;
+            syncHealthState[channel] = {
+                state: String(state || 'checking').trim(),
+                updatedAt: updatedAt || getThTime(),
+                message: String(message || '').trim()
+            };
+            renderSyncHealthStatus();
+        }
+
+        function resetSyncHealthStatus() {
+            if (getConfiguredBackendMode() === 'firebase') {
+                syncHealthState.firebase = { state: 'checking', updatedAt: '--:--', message: 'กำลังเชื่อมต่อ Firebase' };
+                syncHealthState.mirror = { state: 'checking', updatedAt: '--:--', message: 'กำลังตรวจสอบ Google Sheets mirror' };
+            } else {
+                syncHealthState.firebase = { state: 'disabled', updatedAt: '--:--', message: 'ไม่ได้ใช้งานโหมด Firebase' };
+                syncHealthState.mirror = { state: 'disabled', updatedAt: '--:--', message: 'ไม่ได้ใช้งาน mirror write ผ่าน Firebase' };
+            }
+            renderSyncHealthStatus();
+        }
+
+        function getSyncHealthBadgeMarkup(channel) {
+            const entry = syncHealthState[channel];
+            if (!entry) return '';
+
+            const baseClass = 'text-[11px] font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-2';
+            let text = '';
+            let className = '';
+
+            if (channel === 'firebase') {
+                if (entry.state === 'live') {
+                    text = 'Firebase Live';
+                    className = 'text-emerald-700 bg-emerald-50 border-emerald-100';
+                } else if (entry.state === 'failed') {
+                    text = 'Firebase Failed';
+                    className = 'text-red-700 bg-red-50 border-red-100';
+                } else if (entry.state === 'disabled') {
+                    text = 'Firebase Off';
+                    className = 'text-slate-600 bg-slate-100 border-slate-200';
+                } else {
+                    text = 'Firebase Checking';
+                    className = 'text-amber-700 bg-amber-50 border-amber-100';
+                }
+            } else {
+                if (entry.state === 'ok') {
+                    text = 'Sheet Mirror OK';
+                    className = 'text-blue-700 bg-blue-50 border-blue-100';
+                } else if (entry.state === 'failed') {
+                    text = 'Sheet Mirror Failed';
+                    className = 'text-red-700 bg-red-50 border-red-100';
+                } else if (entry.state === 'disabled') {
+                    text = 'Sheet Mirror Off';
+                    className = 'text-slate-600 bg-slate-100 border-slate-200';
+                } else {
+                    text = 'Sheet Mirror Checking';
+                    className = 'text-amber-700 bg-amber-50 border-amber-100';
+                }
+            }
+
+            const title = escapeHtml([text, entry.updatedAt !== '--:--' ? ('ล่าสุด ' + entry.updatedAt) : '', entry.message].filter(Boolean).join(' | '));
+            return `<span class="${baseClass} ${className}" title="${title}">${text}${entry.updatedAt !== '--:--' ? ` <span class="font-mono text-[10px] opacity-80">${escapeHtml(entry.updatedAt)}</span>` : ''}</span>`;
+        }
+
+        function renderSyncHealthStatus() {
+            const containerIds = ['sync-health-home', 'sync-health-dash', 'sync-health-header'];
+            const shouldShow = isAdminUser() && getConfiguredBackendMode() === 'firebase';
+            const markup = shouldShow
+                ? `<div class="flex flex-wrap items-center gap-2">${getSyncHealthBadgeMarkup('firebase')}${getSyncHealthBadgeMarkup('mirror')}</div>`
+                : '';
+
+            containerIds.forEach((containerId) => {
+                const el = document.getElementById(containerId);
+                if (!el) return;
+                if (!shouldShow) {
+                    el.innerHTML = '';
+                    el.classList.add('hidden');
+                    return;
+                }
+                el.innerHTML = markup;
+                el.classList.remove('hidden');
+            });
+        }
+
+        async function checkAppsScriptMirrorHealth() {
+            if (getConfiguredBackendMode() !== 'firebase') {
+                setSyncHealthStatus('mirror', 'disabled', 'ไม่ได้ใช้งาน mirror write ผ่าน Firebase', '--:--');
+                return false;
+            }
+
+            const appsScriptUrl = getConfiguredAppsScriptWebAppUrl();
+            if (!appsScriptUrl) {
+                setSyncHealthStatus('mirror', 'failed', 'ยังไม่ได้ตั้งค่า Apps Script Web App URL');
+                return false;
+            }
+
+            setSyncHealthStatus('mirror', 'checking', 'กำลังตรวจสอบการเชื่อมต่อ Google Sheets mirror');
+            try {
+                await invokeAppsScriptApiMethod('getInitialData', []);
+                setSyncHealthStatus('mirror', 'ok', 'Google Sheets mirror พร้อมใช้งาน');
+                return true;
+            } catch (err) {
+                setSyncHealthStatus('mirror', 'failed', 'Google Sheets mirror ไม่พร้อม: ' + (err && err.message ? err.message : err));
+                return false;
+            }
         }
 
         function setConfiguredBackendMode(mode) {
@@ -1480,23 +1619,60 @@
             throw new Error('Firestore method not supported: ' + method);
         }
 
-        async function invokeBackendMethod(methodName, args) {
+        function isFirestoreMutationMethod(methodName) {
+            return FIRESTORE_MUTATION_METHODS.has(String(methodName || '').trim());
+        }
+
+        function shouldMirrorToAppsScript(methodName) {
+            return getConfiguredBackendMode() === 'firebase'
+                && isFirestoreMutationMethod(methodName)
+                && !!getConfiguredAppsScriptWebAppUrl();
+        }
+
+        async function invokePrimaryBackendMethod(methodName, args) {
             const backendMode = getConfiguredBackendMode();
+            const method = String(methodName || '').trim();
             const callArgs = Array.isArray(args) ? args : [];
 
             if (backendMode === 'firebase') {
-                try {
-                    return await invokeFirestoreMethod(methodName, callArgs);
-                } catch (err) {
-                    const appsScriptUrl = getConfiguredAppsScriptWebAppUrl();
-                    if (appsScriptUrl) {
-                        return invokeAppsScriptApiMethod(methodName, callArgs);
+                if (method === 'getInitialData' || isFirestoreMutationMethod(method)) {
+                    try {
+                        return await invokeFirestoreMethod(method, callArgs);
+                    } catch (err) {
+                        if (method === 'getInitialData' && getConfiguredAppsScriptWebAppUrl()) {
+                            console.warn('[Smart ICS] Firebase initial load failed, falling back to Apps Script:', err);
+                            return invokeAppsScriptApiMethod(method, callArgs);
+                        }
+                        throw err;
                     }
-                    throw err;
                 }
+
+                return invokeAppsScriptApiMethod(method, callArgs);
             }
 
-            return invokeAppsScriptApiMethod(methodName, callArgs);
+            return invokeAppsScriptApiMethod(method, callArgs);
+        }
+
+        function mirrorMutationToAppsScript(methodName, args) {
+            if (!shouldMirrorToAppsScript(methodName)) return Promise.resolve(false);
+
+            return invokeAppsScriptApiMethod(methodName, args)
+                .then(() => {
+                    setSyncHealthStatus('mirror', 'ok', 'Google Sheets mirror บันทึกล่าสุดสำเร็จ');
+                    return true;
+                })
+                .catch((err) => {
+                    setSyncHealthStatus('mirror', 'failed', 'Google Sheets mirror ล้มเหลว: ' + (err && err.message ? err.message : err));
+                    console.warn('[Smart ICS] Apps Script mirror write failed for', methodName, err);
+                    return false;
+                });
+        }
+
+        async function invokeBackendMethod(methodName, args) {
+            const callArgs = Array.isArray(args) ? args : [];
+            const result = await invokePrimaryBackendMethod(methodName, callArgs);
+            mirrorMutationToAppsScript(methodName, callArgs);
+            return result;
         }
 
         async function invokeAppsScriptApiMethod(methodName, args) {
@@ -2633,6 +2809,7 @@
             renderAll();
             if (appData.activeIncident || ['home', 'users'].includes(currentTab)) switchTab(currentTab);
             else switchTab('home');
+            checkAppsScriptMirrorHealth();
             return true;
         }
 
@@ -2700,6 +2877,9 @@
                 .then((data) => {
                     try {
                         processServerData(data);
+                        if (getConfiguredBackendMode() === 'firebase') {
+                            setSyncHealthStatus('firebase', 'live', 'โหลดข้อมูลจาก Firebase สำเร็จ');
+                        }
                         restoreSavedSession(currentTab);
                     } catch (e) {
                         console.error('[Smart ICS] loadDataFromServer error:', e);
@@ -2707,6 +2887,9 @@
                     }
                 })
                 .catch((err) => {
+                    if (getConfiguredBackendMode() === 'firebase') {
+                        setSyncHealthStatus('firebase', 'failed', 'เชื่อมต่อ Firebase ไม่สำเร็จ: ' + (err && err.message ? err.message : err));
+                    }
                     console.warn('[Smart ICS] backend unavailable, fallback preview mode:', err);
                     appData.users = { '1669': { id: 'u1', name: 'เต้ (Preview)', role: 'Admin', agency: 'สพฉ.', initial: 'ด' } };
                     restoreSavedSession(currentTab);
@@ -2812,6 +2995,9 @@
             const dashStatus = document.getElementById('dash-realtime-status');
             if (homeStatus) homeStatus.innerText = label;
             if (dashStatus) dashStatus.innerText = label;
+            if (getConfiguredBackendMode() === 'firebase' && realtimeLastSyncAt !== '--:--') {
+                setSyncHealthStatus('firebase', 'live', 'รับส่งข้อมูลผ่าน Firebase แบบ real-time', realtimeLastSyncAt);
+            }
         }
 
         function buildServerDataSignature(data) {
@@ -2908,6 +3094,7 @@
                     if (snap.metadata.hasPendingWrites) return;
                     applyRealtime();
                 }, (err) => {
+                    setSyncHealthStatus('firebase', 'failed', 'Realtime listener error: ' + (err && err.message ? err.message : err));
                     console.warn('[Smart ICS] Firestore realtime listener failed for', collectionName, err);
                 });
                 firestoreRealtimeUnsubscribers.push(unsubscribe);
@@ -3025,10 +3212,16 @@
             
             invokeBackendMethod('getInitialData', [])
                 .then((data) => {
+                    if (getConfiguredBackendMode() === 'firebase') {
+                        setSyncHealthStatus('firebase', 'live', 'โหลดข้อมูลจาก Firebase สำเร็จ');
+                    }
                     processServerData(data);
                     finishLogin(pin, errorMsg, loginButton);
                 })
                 .catch((err) => {
+                    if (getConfiguredBackendMode() === 'firebase') {
+                        setSyncHealthStatus('firebase', 'failed', 'โหลดข้อมูล Firebase ไม่สำเร็จ: ' + (err && err.message ? err.message : err));
+                    }
                     document.getElementById('loading-screen').classList.add('hidden');
                     endButtonProcessing(loginButton);
                     showGlobalError('LOGIN_FETCH', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ' + (err && err.message ? err.message : err), null);
@@ -3068,6 +3261,7 @@
                 const savedTab = localStorage.getItem('smart_ics_tab') || 'home';
                 if (appData.activeIncident || ['home', 'users'].includes(savedTab)) switchTab(savedTab);
                 else switchTab('home');
+                checkAppsScriptMirrorHealth();
             } else {
                 errorMsg.classList.remove('hidden');
                 document.getElementById('pinInput').value = '';
@@ -3081,6 +3275,7 @@
             localStorage.removeItem('smart_ics_pin');
             localStorage.removeItem('smart_ics_tab');
             localStorage.removeItem(ACTIVE_INCIDENT_STORAGE_KEY);
+            renderSyncHealthStatus();
             showAuthScreen();
         }
 
@@ -3118,6 +3313,7 @@
             if(mobIcon) mobIcon.classList.add('animate-spin');
 
             if (getConfiguredBackendMode() === 'firebase') {
+                checkAppsScriptMirrorHealth();
                 loadDataFromServer(() => {
                     if(deskIcon) deskIcon.classList.remove('animate-spin');
                     if(mobIcon) mobIcon.classList.remove('animate-spin');
@@ -3194,6 +3390,7 @@
                 document.getElementById('header-incident-id').innerText = currentUser ? `ยินดีต้อนรับ ${currentUser.name}` : "ยินดีต้อนรับ";
                 document.getElementById('desktop-header-status').innerHTML = '';
             }
+            renderSyncHealthStatus();
         }
 
         // --- 5. RENDER FUNCTIONS ---
@@ -4070,18 +4267,6 @@
             setCloseIncidentButtonsProcessing(true);
             setLoadingScreenVisible(true, CLOSING_INCIDENT_TEXT);
 
-            if (typeof google !== 'undefined') {
-                google.script.run
-                    .withSuccessHandler(() => {
-                        finishClose();
-                    })
-                    .withFailureHandler((err) => {
-                        handleCloseError(err);
-                    })
-                    .closeIncident(incId, durationStr, currentUser.name);
-                return;
-            }
-
             invokeBackendMethod('closeIncident', [incId, durationStr, currentUser.name])
                 .then(() => { finishClose(); })
                 .catch((err) => { handleCloseError(err); });
@@ -4406,6 +4591,7 @@
             ensureGoogleScriptRunBridge();
             loadThemeMode();
             loadTacMapState();
+            resetSyncHealthStatus();
             loadDataFromServer(() => {
                 realtimeDataSignature = buildServerDataSignature({
                     users: appData.users,
@@ -4427,8 +4613,10 @@
 
             if (getConfiguredBackendMode() === 'firebase') {
                 startFirestoreRealtimeSync().catch((err) => {
+                    setSyncHealthStatus('firebase', 'failed', 'เริ่ม realtime sync ไม่สำเร็จ: ' + (err && err.message ? err.message : err));
                     console.warn('[Smart ICS] Firestore realtime startup failed:', err);
                 });
+                checkAppsScriptMirrorHealth();
             } else {
                 stopFirestoreRealtimeSync();
                 realtimePollTimer = setInterval(() => refreshActiveRealtime(false), REALTIME_POLL_MS);
