@@ -196,9 +196,6 @@
                 <span class="text-[9px] text-slate-500 font-mono leading-none" id="mob-gps-status">📍 ค้นหาพิกัด...</span>
             </div>
             <div class="flex flex-col gap-1">
-                <button onclick="handleManualRefresh()" class="bg-blue-50 p-1 rounded-full border border-blue-100 text-blue-600 active:scale-95" title="ซิงค์ข้อมูลล่าสุด">
-                    <i data-lucide="refresh-cw" id="refresh-icon-mob" class="w-3.5 h-3.5"></i>
-                </button>
                 <button id="theme-toggle-mob" onclick="toggleThemeMode()" class="bg-slate-100 p-1 rounded-full border border-slate-200 text-slate-500 active:scale-95" title="สลับโหมดแสง/มืด">
                     <i data-lucide="moon" class="w-3.5 h-3.5"></i>
                 </button>
@@ -296,9 +293,6 @@
                         <span id="gps-coords">กำลังระบุตำแหน่งดาวเทียม...</span>
                     </p>
                 </div>
-                <button onclick="handleManualRefresh()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 p-2.5 rounded-full border border-blue-100 active:scale-95 transition-all" title="ซิงค์ข้อมูลล่าสุด">
-                    <i data-lucide="refresh-cw" id="refresh-icon-desk" class="w-5 h-5"></i>
-                </button>
                 <button id="theme-toggle-desk" onclick="toggleThemeMode()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2.5 rounded-full border border-slate-200 active:scale-95 transition-all" title="สลับโหมดแสง/มืด">
                     <i data-lucide="moon" class="w-5 h-5"></i>
                 </button>
@@ -1041,13 +1035,9 @@
         const DEFAULT_LOADING_TEXT = 'กำลังโหลดข้อมูลล่าสุด...';
         const CLOSING_INCIDENT_TEXT = 'กำลังปิดสถานการณ์...';
         const REALTIME_POLL_MS = 10000;
-        const MANUAL_SYNC_DURATION_MS = 60 * 1000;
-        const MANUAL_SYNC_TICK_MS = 5000;
         let realtimeLastSyncAt = '--:--';
         let realtimeDataSignature = '';
         let realtimePollTimer = null;
-        let manualSyncInterval = null;
-        let manualSyncStopTimer = null;
         const TACMAP_STATE_STORAGE_KEY = 'smart_ics_tacmap_state';
         let tacMapStateByIncident = {};
         let tacMapInstance = null;
@@ -3305,37 +3295,6 @@
             }
         }
 
-        function handleManualRefresh() {
-            if(!currentUser) return;
-            const deskIcon = document.getElementById('refresh-icon-desk');
-            const mobIcon = document.getElementById('refresh-icon-mob');
-            if(deskIcon) deskIcon.classList.add('animate-spin');
-            if(mobIcon) mobIcon.classList.add('animate-spin');
-
-            if (getConfiguredBackendMode() === 'firebase') {
-                checkAppsScriptMirrorHealth();
-                loadDataFromServer(() => {
-                    if(deskIcon) deskIcon.classList.remove('animate-spin');
-                    if(mobIcon) mobIcon.classList.remove('animate-spin');
-                });
-                return;
-            }
-
-            if (manualSyncInterval) clearInterval(manualSyncInterval);
-            if (manualSyncStopTimer) clearTimeout(manualSyncStopTimer);
-
-            // Sync immediately, then keep syncing for 1 minute.
-            refreshActiveRealtime(true);
-            manualSyncInterval = setInterval(() => refreshActiveRealtime(true), MANUAL_SYNC_TICK_MS);
-            manualSyncStopTimer = setTimeout(() => {
-                if (manualSyncInterval) clearInterval(manualSyncInterval);
-                manualSyncInterval = null;
-                manualSyncStopTimer = null;
-                if(deskIcon) deskIcon.classList.remove('animate-spin');
-                if(mobIcon) mobIcon.classList.remove('animate-spin');
-            }, MANUAL_SYNC_DURATION_MS);
-        }
-
         function switchTab(tabId) {
             if (!appData.activeIncident && appData.activeIncidents.length > 0) {
                 setSelectedIncident(appData.activeIncidents[0].id);
@@ -4169,6 +4128,8 @@
             });
             appendIncidentLog({ id: Date.now(), time: updatedAt, category: 'Safety', message: logMessage, author: currentUser.name });
 
+            // Keep Home cards in sync immediately without waiting for realtime snapshot.
+            renderHome();
             renderDashboard();
             renderLogs();
 
