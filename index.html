@@ -55,7 +55,7 @@
             });
         }
 
-        window.addEventListener('load', loadExternalResources);
+        loadExternalResources();
 
         window.addEventListener('error', function(ev) {
             const target = ev.target || ev.srcElement;
@@ -70,6 +70,13 @@
     </script>
     <style>
         body { font-family: 'Prompt', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .hidden { display: none !important; }
+        body.app-booting main,
+        body.app-booting header,
+        body.app-booting aside,
+        body.app-booting nav { visibility: hidden; }
+        body.app-booting #loading-screen,
+        body.app-booting #auth-screen { visibility: visible; }
         .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -115,7 +122,7 @@
         body.dark-mode .text-slate-400 { color: #94a3b8 !important; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden relative">
+<body class="app-booting text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden relative">
 
     <div id="loading-screen" class="fixed inset-0 z-[200] bg-slate-900/80 flex flex-col items-center justify-center backdrop-blur-sm transition-opacity">
         <i data-lucide="loader-2" class="w-12 h-12 text-blue-500 animate-spin mb-4"></i>
@@ -230,17 +237,17 @@
             <button onclick="switchTab('ics')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="ics">
                 <i data-lucide="network" class="w-5 h-5 text-indigo-400"></i> <span class="font-medium text-sm">ผังบัญชาการ (ICS)</span>
             </button>
-            <button onclick="switchTab('logs')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="logs">
-                <i data-lucide="clipboard-list" class="w-5 h-5 text-amber-400"></i> <span class="font-medium text-sm">บันทึกเหตุการณ์ (Logs)</span>
-            </button>
             <button onclick="switchTab('personnel')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="personnel">
-                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> <span class="font-medium text-sm">กำลังพล (Registration)</span>
+                <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i> <span class="font-medium text-sm">ลงทะเบียนเข้าพื้นที่ (Registration)</span>
             </button>
             <button onclick="switchTab('zone')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="zone">
                 <i data-lucide="map-pin" class="w-5 h-5 text-red-400"></i> <span class="font-medium text-sm">ควบคุมโซน (Check-in/out)</span>
             </button>
             <button onclick="switchTab('tacmap')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="tacmap">
                 <i data-lucide="map" class="w-5 h-5 text-amber-400"></i> <span class="font-medium text-sm">แผนที่ปฏิบัติการ (TACMAP)</span>
+            </button>
+            <button onclick="switchTab('logs')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 hover:bg-slate-800 hover:text-white" data-target="logs">
+                <i data-lucide="clipboard-list" class="w-5 h-5 text-amber-400"></i> <span class="font-medium text-sm">บันทึกเหตุการณ์ (Logs)</span>
             </button>
             
             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-2">Settings</p>
@@ -321,7 +328,7 @@
                                 สถานการณ์ปัจจุบัน (Active)
                             </h3>
                             <div class="flex flex-wrap items-center justify-end gap-2">
-                                <span id="active-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                                <span id="active-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Cloud sync --:--</span>
                                 <div id="sync-health-home" class="hidden"></div>
                             </div>
                         </div>
@@ -370,7 +377,7 @@
                     <div id="dashboard-incident-switcher-desk" class="flex-1"></div>
                     <div class="flex justify-end items-center gap-3">
                         <div class="flex flex-wrap items-center justify-end gap-2">
-                            <span id="dash-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Live --:--</span>
+                            <span id="dash-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Cloud sync --:--</span>
                             <div id="sync-health-dash" class="hidden"></div>
                         </div>
                          <button onclick="handleAiAction('SITREP')" class="bg-gradient-to-r from-indigo-100 to-purple-100 hover:from-indigo-200 hover:to-purple-200 text-indigo-800 border border-indigo-200 px-4 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 flex items-center justify-center gap-2 transition-all">
@@ -420,6 +427,16 @@
                         <div class="relative pl-3 space-y-5 border-l-2 border-slate-100 mt-2" id="dashboard-logs"></div>
                     </div>
                 </div>
+
+                <div class="mt-6 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-5 md:p-6 border border-slate-700 shadow-lg shadow-slate-900/20">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h3 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                            <div class="bg-white/10 p-1.5 rounded-lg text-blue-200"><i data-lucide="network" class="w-4 h-4"></i></div> ผัง ICS ย่อ (Incident Snapshot)
+                        </h3>
+                        <button onclick="switchTab('ics')" class="text-xs bg-white/10 hover:bg-white/20 text-blue-100 border border-white/20 px-3 py-1.5 rounded-lg font-bold transition-colors">เปิดผังเต็ม</button>
+                    </div>
+                    <div id="dashboard-ics-overview"></div>
+                </div>
             </div>
 
             <!-- VIEW: ICS STRUCTURE -->
@@ -467,7 +484,7 @@
             <div id="view-personnel" class="view-section">
                 <div class="mb-4 md:mb-6 flex flex-col md:flex-row justify-between md:items-end gap-3">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">ระบบลงทะเบียน (Resource Unit)</h2>
+                        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">ลงทะเบียนเข้าพื้นที่ (Registration)</h2>
                         <p class="text-sm text-slate-500 mt-1">จัดการรายชื่อหน่วยงานและกำลังพลสนับสนุน</p>
                     </div>
                     <button id="btn-new-agency" onclick="document.getElementById('regModal').classList.remove('hidden')" class="w-full md:w-auto bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 hidden">
@@ -617,7 +634,7 @@
                         <h2 class="text-2xl font-bold text-slate-800 tracking-tight">ข่ายวิทยุสื่อสาร (Communications)</h2>
                         <p class="text-sm text-slate-500 mt-1">แผนผังความถี่และการจัดสรรข่าย</p>
                     </div>
-                    <button onclick="handleAddRadioChannel()" class="w-full md:w-auto bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
+                    <button id="btn-add-radio-channel" onclick="handleAddRadioChannel()" class="w-full md:w-auto bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
                         <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มช่องสื่อสาร
                     </button>
                 </div>
@@ -686,10 +703,6 @@
                 <i data-lucide="network" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">ผังฯ</span>
             </button>
-            <button onclick="switchTab('logs')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="logs">
-                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">บันทึก</span>
-            </button>
 
             <!-- Center FAB: หน้าหลัก -->
             <div class="flex flex-col items-center flex-1 -mt-5">
@@ -703,7 +716,7 @@
 
             <button onclick="switchTab('personnel')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="personnel">
                 <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">กำลังพล</span>
+                <span class="text-[9px] font-medium">ลงทะเบียน</span>
             </button>
             <button onclick="switchTab('zone')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="zone">
                 <i data-lucide="map-pin" class="w-5 h-5"></i>
@@ -712,6 +725,10 @@
             <button onclick="switchTab('tacmap')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="tacmap">
                 <i data-lucide="map" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">TACMAP</span>
+            </button>
+            <button onclick="switchTab('logs')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="logs">
+                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                <span class="text-[9px] font-medium">บันทึก</span>
             </button>
         </div>
     </nav>
@@ -781,8 +798,10 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">สิทธิ์ (Role)</label>
                         <select id="newUserRole" required class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50 font-medium">
                             <option value="Admin">Admin</option>
-                            <option value="IC">IC (Commander)</option>
-                            <option value="Staff" selected>Staff</option>
+                            <option value="Commander">Commander</option>
+                            <option value="Liaison">Liaison</option>
+                            <option value="Operator">Operator</option>
+                            <option value="Guest" selected>Guest</option>
                         </select>
                     </div>
                 </div>
@@ -1018,7 +1037,7 @@
 
         let appData = {
             users: {}, activeIncidents: [], activeIncident: null, history: [], logs: [], personnel: [], zoneStaff: [], zoneRecords: [], radioChannels: [],
-            sourceData: { incidents: [], logs: [], personnel: [], zoneStaff: [], zoneRecords: [], ics: [] },
+            sourceData: { incidents: [], logs: [], personnel: [], zoneStaff: [], zoneRecords: [], ics: [], tacmap: [] },
             icsData: JSON.parse(JSON.stringify(defaultIcsData))
         };
         
@@ -1046,6 +1065,7 @@
         let tacMapWarmCircle = null;
         let tacMapColdCircle = null;
         let tacMapTileLayer = null;
+        let tacMapPersistTimers = {};
         let lastActionButton = null;
         let firebaseInitPromise = null;
         let firestoreDb = null;
@@ -1067,11 +1087,21 @@
             'updateICSNode',
             'updateRadioChannel',
             'deleteRadioChannel',
+            'updateTacMapState',
             'addNewUser',
             'updateUser',
             'resetUserPin',
             'deleteUser'
         ]);
+        const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState']);
+
+        const TAB_ACCESS_BY_ROLE = {
+            Admin: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio', 'users'],
+            Commander: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio'],
+            Liaison: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio'],
+            Operator: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio'],
+            Guest: ['home', 'dashboard']
+        };
 
         function normalizeBackendMode(value) {
             const normalized = String(value || '').trim().toLowerCase();
@@ -1080,7 +1110,59 @@
         }
 
         function isAdminUser() {
-            return !!(currentUser && currentUser.role === 'Admin');
+            return !!(currentUser && getNormalizedRole(currentUser.role) === 'Admin');
+        }
+
+        function getNormalizedRole(rawRole) {
+            const role = String(rawRole || '').trim();
+            const upperRole = role.toUpperCase();
+            if (upperRole === 'ADMIN') return 'Admin';
+            if (upperRole === 'IC' || upperRole === 'COMMANDER') return 'Commander';
+            if (upperRole === 'LIAISON') return 'Liaison';
+            if (upperRole === 'OPERATOR') return 'Operator';
+            if (upperRole === 'STAFF' || upperRole === 'GUEST') return 'Guest';
+            return 'Guest';
+        }
+
+        function getDisplayRole(rawRole) {
+            const normalized = getNormalizedRole(rawRole);
+            return normalized;
+        }
+
+        function canAccessTab(tabId) {
+            if (!currentUser) return false;
+            const normalizedRole = getNormalizedRole(currentUser.role);
+            const allowedTabs = TAB_ACCESS_BY_ROLE[normalizedRole] || TAB_ACCESS_BY_ROLE.Guest;
+            return allowedTabs.includes(String(tabId || '').trim());
+        }
+
+        function isOwnZoneRecord(record) {
+            if (!currentUser || !record) return false;
+            const userName = String(currentUser.name || '').trim();
+            const recordName = String(record.name || '').trim();
+            if (!userName || !recordName) return false;
+            return recordName === userName || recordName.startsWith(userName + ' ');
+        }
+
+        function applyRoleBasedNavigation() {
+            const protectedTabs = ['ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio'];
+            const allNavButtons = document.querySelectorAll('.nav-btn, .mobile-nav-btn');
+            allNavButtons.forEach((btn) => {
+                const target = btn.dataset && btn.dataset.target ? btn.dataset.target : '';
+                if (!target || target === 'home' || target === 'dashboard') return;
+                const shouldShow = canAccessTab(target);
+                btn.classList.toggle('hidden', !shouldShow);
+                if (btn.id === 'mobile-nav-users') {
+                    if (shouldShow) btn.classList.add('inline-flex');
+                    else btn.classList.remove('inline-flex');
+                }
+            });
+
+            protectedTabs.forEach((tabId) => {
+                const view = document.getElementById('view-' + tabId);
+                if (!view) return;
+                view.classList.toggle('opacity-70', !canAccessTab(tabId));
+            });
         }
 
         function setSyncHealthStatus(channel, state, message, updatedAt) {
@@ -1114,30 +1196,30 @@
 
             if (channel === 'firebase') {
                 if (entry.state === 'live') {
-                    text = 'Firebase Live';
+                    text = 'Cloud sync';
                     className = 'text-emerald-700 bg-emerald-50 border-emerald-100';
                 } else if (entry.state === 'failed') {
-                    text = 'Firebase Failed';
+                    text = 'Cloud sync Failed';
                     className = 'text-red-700 bg-red-50 border-red-100';
                 } else if (entry.state === 'disabled') {
-                    text = 'Firebase Off';
+                    text = 'Cloud sync Off';
                     className = 'text-slate-600 bg-slate-100 border-slate-200';
                 } else {
-                    text = 'Firebase Checking';
+                    text = 'Cloud sync Checking';
                     className = 'text-amber-700 bg-amber-50 border-amber-100';
                 }
             } else {
                 if (entry.state === 'ok') {
-                    text = 'Sheet Mirror OK';
+                    text = 'Backup status: OK';
                     className = 'text-blue-700 bg-blue-50 border-blue-100';
                 } else if (entry.state === 'failed') {
-                    text = 'Sheet Mirror Failed';
+                    text = 'Backup status: Failed';
                     className = 'text-red-700 bg-red-50 border-red-100';
                 } else if (entry.state === 'disabled') {
-                    text = 'Sheet Mirror Off';
+                    text = 'Backup status: Off';
                     className = 'text-slate-600 bg-slate-100 border-slate-200';
                 } else {
-                    text = 'Sheet Mirror Checking';
+                    text = 'Backup status: Checking';
                     className = 'text-amber-700 bg-amber-50 border-amber-100';
                 }
             }
@@ -1401,7 +1483,8 @@
                 loadFirestoreCollection('zoneStaff'),
                 loadFirestoreCollection('zoneRecords'),
                 loadFirestoreCollection('ics'),
-                loadFirestoreCollection('radios')
+                loadFirestoreCollection('radios'),
+                loadFirestoreCollection('tacmap')
             ]);
 
             return {
@@ -1412,7 +1495,8 @@
                 ZoneStaff: result[4],
                 ZoneRecords: result[5],
                 ICS: result[6],
-                Radios: result[7]
+                Radios: result[7],
+                TacMap: result[8]
             };
         }
 
@@ -1572,12 +1656,29 @@
                 return true;
             }
 
+            if (method === 'updateTacMapState') {
+                const incidentId = asDocId(callArgs[0]);
+                await db.collection('tacmap').doc(incidentId).set({
+                    ID: incidentId,
+                    IncidentID: incidentId,
+                    Lat: callArgs[1] === '' || callArgs[1] == null ? '' : Number(callArgs[1]),
+                    Lng: callArgs[2] === '' || callArgs[2] == null ? '' : Number(callArgs[2]),
+                    HotRadius: Number(callArgs[3] || 300),
+                    WarmRadius: Number(callArgs[4] || 800),
+                    ColdRadius: Number(callArgs[5] || 1500),
+                    Zoom: Number(callArgs[6] || 13),
+                    UpdatedAt: callArgs[7] || '',
+                    UpdatedBy: callArgs[8] || ''
+                }, { merge: true });
+                return true;
+            }
+
             if (method === 'addNewUser') {
                 await db.collection('users').doc(asDocId(callArgs[1])).set({
                     ID: asDocId(callArgs[1]),
                     PIN: callArgs[0] || '',
                     Name: callArgs[2] || '',
-                    Role: callArgs[3] || 'Staff',
+                    Role: getNormalizedRole(callArgs[3] || 'Guest'),
                     Agency: callArgs[4] || '-',
                     Initial: callArgs[5] || '?'
                 }, { merge: true });
@@ -1587,7 +1688,7 @@
             if (method === 'updateUser') {
                 await db.collection('users').doc(asDocId(callArgs[0])).set({
                     Name: callArgs[1] || '',
-                    Role: callArgs[2] || 'Staff',
+                    Role: getNormalizedRole(callArgs[2] || 'Guest'),
                     Agency: callArgs[3] || '-',
                     Initial: callArgs[4] || '?'
                 }, { merge: true });
@@ -1616,7 +1717,75 @@
         function shouldMirrorToAppsScript(methodName) {
             return getConfiguredBackendMode() === 'firebase'
                 && isFirestoreMutationMethod(methodName)
+                && !MIRROR_EXCLUDED_METHODS.has(String(methodName || '').trim())
                 && !!getConfiguredAppsScriptWebAppUrl();
+        }
+
+        function normalizeTacMapStatePayload(incidentId, state) {
+            const source = state && typeof state === 'object' ? state : {};
+            return {
+                incidentId: String(incidentId || ''),
+                lat: source.lat === '' || source.lat == null ? '' : Number(source.lat),
+                lng: source.lng === '' || source.lng == null ? '' : Number(source.lng),
+                hotRadius: Math.max(50, Number(source.hotRadius || 300)),
+                warmRadius: Math.max(100, Number(source.warmRadius || 800)),
+                coldRadius: Math.max(200, Number(source.coldRadius || 1500)),
+                zoom: Math.max(3, Number(source.zoom || 13)),
+                updatedAt: String(source.updatedAt || getThTime()),
+                updatedBy: String(source.updatedBy || (currentUser ? currentUser.name : 'system'))
+            };
+        }
+
+        function upsertLocalTacMapRecord(incidentId, state, saveLocal = true) {
+            const normalized = normalizeTacMapStatePayload(incidentId, state);
+            if (!normalized.incidentId) return;
+
+            const key = normalized.incidentId;
+            tacMapStateByIncident[key] = {
+                lat: normalized.lat,
+                lng: normalized.lng,
+                hotRadius: normalized.hotRadius,
+                warmRadius: normalized.warmRadius,
+                coldRadius: normalized.coldRadius,
+                zoom: normalized.zoom,
+                updatedAt: normalized.updatedAt,
+                updatedBy: normalized.updatedBy
+            };
+
+            const existing = appData.sourceData.tacmap.find((record) => String(record.incidentId) === key);
+            if (existing) {
+                Object.assign(existing, { ...normalized });
+            } else {
+                appData.sourceData.tacmap.push({ ...normalized });
+            }
+
+            if (saveLocal) saveTacMapState();
+        }
+
+        function scheduleTacMapStateSync(incidentId) {
+            if (!incidentId || getConfiguredBackendMode() !== 'firebase') return;
+            if (!currentUser) return;
+
+            const key = String(incidentId);
+            if (tacMapPersistTimers[key]) clearTimeout(tacMapPersistTimers[key]);
+            tacMapPersistTimers[key] = setTimeout(() => {
+                const state = tacMapStateByIncident[key];
+                if (!state) return;
+                const normalized = normalizeTacMapStatePayload(key, state);
+                upsertLocalTacMapRecord(key, normalized, true);
+                callBackend('updateTacMapState', [
+                    normalized.incidentId,
+                    normalized.lat,
+                    normalized.lng,
+                    normalized.hotRadius,
+                    normalized.warmRadius,
+                    normalized.coldRadius,
+                    normalized.zoom,
+                    normalized.updatedAt,
+                    normalized.updatedBy
+                ], null, true);
+                delete tacMapPersistTimers[key];
+            }, 400);
         }
 
         async function invokePrimaryBackendMethod(methodName, args) {
@@ -1919,9 +2088,9 @@
 
         function getTacMapIncidentState(incidentId) {
             const key = String(incidentId || '');
-            if (!key) return { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13 };
+            if (!key) return { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, updatedAt: '', updatedBy: '' };
             if (!tacMapStateByIncident[key]) {
-                tacMapStateByIncident[key] = { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13 };
+                tacMapStateByIncident[key] = { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, updatedAt: '', updatedBy: '' };
             }
             // Backward compatibility: migrate old single-radius state
             if (tacMapStateByIncident[key].radius != null) {
@@ -1988,7 +2157,10 @@
             state.lat = lat;
             state.lng = lng;
             state.zoom = tacMapInstance.getZoom();
-            saveTacMapState();
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            scheduleTacMapStateSync(appData.activeIncident.id);
 
             const latEl = document.getElementById('tacmap-lat');
             const lngEl = document.getElementById('tacmap-lng');
@@ -2042,7 +2214,10 @@
                     if (!appData.activeIncident) return;
                     const s = getTacMapIncidentState(appData.activeIncident.id);
                     s.zoom = tacMapInstance.getZoom();
-                    saveTacMapState();
+                    s.updatedAt = getThTime();
+                    s.updatedBy = currentUser ? currentUser.name : 'system';
+                    upsertLocalTacMapRecord(appData.activeIncident.id, s, true);
+                    scheduleTacMapStateSync(appData.activeIncident.id);
                 });
             } else {
                 setTimeout(() => tacMapInstance.invalidateSize(), 100);
@@ -2100,7 +2275,10 @@
 
             const state = getTacMapIncidentState(appData.activeIncident.id);
             state[cfg.stateKey] = radius;
-            saveTacMapState();
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            scheduleTacMapStateSync(appData.activeIncident.id);
 
             if (cfg.circleName === 'hot' && tacMapHotCircle) tacMapHotCircle.setRadius(radius);
             if (cfg.circleName === 'warm' && tacMapWarmCircle) tacMapWarmCircle.setRadius(radius);
@@ -2116,7 +2294,10 @@
             if (!appData.activeIncident) return;
             const state = getTacMapIncidentState(appData.activeIncident.id);
             state.lat = ''; state.lng = '';
-            saveTacMapState();
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            scheduleTacMapStateSync(appData.activeIncident.id);
             if (tacMapMarker) { tacMapInstance.removeLayer(tacMapMarker); tacMapMarker = null; }
             if (tacMapHotCircle) { tacMapInstance.removeLayer(tacMapHotCircle); tacMapHotCircle = null; }
             if (tacMapWarmCircle) { tacMapInstance.removeLayer(tacMapWarmCircle); tacMapWarmCircle = null; }
@@ -2133,7 +2314,10 @@
             state.hotRadius = 300;
             state.warmRadius = 800;
             state.coldRadius = 1500;
-            saveTacMapState();
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            scheduleTacMapStateSync(appData.activeIncident.id);
             const hotRadiusEl = document.getElementById('tacmap-radius-hot');
             const warmRadiusEl = document.getElementById('tacmap-radius-warm');
             const coldRadiusEl = document.getElementById('tacmap-radius-cold');
@@ -2281,6 +2465,20 @@
                 name: safeGet(record, ['Name', 'name']),
                 phone: safeGet(record, ['Phone', 'phone']),
                 color: safeGet(record, ['Color', 'color'])
+            };
+        }
+
+        function mapTacMapRecord(record) {
+            return {
+                incidentId: String(safeGet(record, ['IncidentID', 'incidentId', 'ID', 'id'], '')).trim(),
+                lat: safeGet(record, ['Lat', 'lat'], ''),
+                lng: safeGet(record, ['Lng', 'lng'], ''),
+                hotRadius: safeGet(record, ['HotRadius', 'hotRadius'], 300),
+                warmRadius: safeGet(record, ['WarmRadius', 'warmRadius'], 800),
+                coldRadius: safeGet(record, ['ColdRadius', 'coldRadius'], 1500),
+                zoom: safeGet(record, ['Zoom', 'zoom'], 13),
+                updatedAt: safeGet(record, ['UpdatedAt', 'updatedAt'], ''),
+                updatedBy: safeGet(record, ['UpdatedBy', 'updatedBy'], '')
             };
         }
 
@@ -2792,9 +2990,11 @@
             currentUser = appData.users[savedPin];
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('sidebar-username').innerText = currentUser.name;
-            const roleText = currentUser.agency ? `${currentUser.role} | ${currentUser.agency}` : currentUser.role;
+            const displayRole = getDisplayRole(currentUser.role);
+            const roleText = currentUser.agency ? `${displayRole} | ${currentUser.agency}` : displayRole;
             document.getElementById('sidebar-role').innerText = roleText;
             document.getElementById('sidebar-avatar').innerText = currentUser.initial;
+            applyRoleBasedNavigation();
 
             renderAll();
             if (appData.activeIncident || ['home', 'users'].includes(currentTab)) switchTab(currentTab);
@@ -2887,6 +3087,7 @@
                 })
                 .finally(() => {
                     document.getElementById('loading-screen').classList.add('hidden');
+                    document.body.classList.remove('app-booting');
                     if (callback) callback();
                 });
         }
@@ -2916,6 +3117,12 @@
             appData.sourceData.zoneStaff = (data.zoneStaff || data.ZoneStaff || []).map(mapZoneStaffRecord);
             appData.sourceData.zoneRecords = (data.zoneRecords || data.ZoneRecords || []).map(mapZoneRecord);
             appData.sourceData.ics = (data.ics || data.ICS || []).map(mapIcsRecord);
+            appData.sourceData.tacmap = (data.tacmap || data.TacMap || []).map(mapTacMapRecord);
+            appData.sourceData.tacmap.forEach((record) => {
+                if (!record.incidentId) return;
+                upsertLocalTacMapRecord(record.incidentId, record, false);
+            });
+            saveTacMapState();
             rebuildIncidentCollections(getStoredIncidentId() || (appData.activeIncident && appData.activeIncident.id));
             console.log('[Smart ICS] Active:', appData.activeIncidents.length, 'History:', appData.history.length);
             
@@ -2980,7 +3187,7 @@
         }
 
         function renderRealtimePulseStatus() {
-            const label = `Live ${realtimeLastSyncAt}`;
+            const label = `Cloud sync ${realtimeLastSyncAt}`;
             const homeStatus = document.getElementById('active-realtime-status');
             const dashStatus = document.getElementById('dash-realtime-status');
             if (homeStatus) homeStatus.innerText = label;
@@ -2998,6 +3205,7 @@
             const zoneRecords = data.zoneRecords || data.ZoneRecords || [];
             const ics = data.ics || data.ICS || [];
             const radios = data.radios || data.Radios || [];
+            const tacmap = data.tacmap || data.TacMap || [];
             const users = data.users || data.Users || {};
 
             const userKeys = Array.isArray(users)
@@ -3011,6 +3219,7 @@
                 zoneRecords: zoneRecords.map((z) => `${safeGet(z, ['ID', 'id'])}|${safeGet(z, ['Status', 'status'])}|${safeGet(z, ['TimeOut', 'timeOut'])}`),
                 ics: ics.map((n) => `${safeGet(n, ['IncidentID', 'incidentId'])}|${safeGet(n, ['Section', 'section'])}|${safeGet(n, ['Index', 'index'])}|${safeGet(n, ['Name', 'name'])}|${safeGet(n, ['Phone', 'phone'])}`),
                 radios: radios.map((r) => `${safeGet(r, ['ID', 'id'])}|${safeGet(r, ['Name', 'name'])}|${safeGet(r, ['Frequency', 'frequency'])}|${safeGet(r, ['Assigned', 'assigned'])}|${safeGet(r, ['Status', 'status'])}`),
+                tacmap: tacmap.map((m) => `${safeGet(m, ['IncidentID', 'incidentId', 'ID', 'id'])}|${safeGet(m, ['Lat', 'lat'])}|${safeGet(m, ['Lng', 'lng'])}|${safeGet(m, ['HotRadius', 'hotRadius'])}|${safeGet(m, ['WarmRadius', 'warmRadius'])}|${safeGet(m, ['ColdRadius', 'coldRadius'])}|${safeGet(m, ['Zoom', 'zoom'])}`),
                 users: userKeys
             });
         }
@@ -3040,7 +3249,8 @@
                 zoneStaff: 'ZoneStaff',
                 zoneRecords: 'ZoneRecords',
                 ics: 'ICS',
-                radios: 'Radios'
+                radios: 'Radios',
+                tacmap: 'TacMap'
             };
 
             const latest = {};
@@ -3136,7 +3346,7 @@
                 if (!pinKey) return;
 
                 const name = (u.name || u.Name || '').toString().trim();
-                const role = (u.role || u.Role || 'Staff').toString().trim();
+                const role = getNormalizedRole((u.role || u.Role || 'Guest').toString().trim());
                 const agency = (u.agency || u.Agency || '-').toString().trim();
                 const id = (u.id || u.ID || ('u_' + pinKey)).toString().trim();
                 const initial = (u.initial || u.Initial || (name ? name.charAt(0) : '?')).toString().trim();
@@ -3244,8 +3454,9 @@
                 setTimeout(() => { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('auth-screen').classList.remove('opacity-0', 'pointer-events-none'); }, 300);
                 
                 document.getElementById('sidebar-username').innerText = currentUser.name;
-                document.getElementById('sidebar-role').innerText = currentUser.role + ' | ' + currentUser.agency;
+                document.getElementById('sidebar-role').innerText = getDisplayRole(currentUser.role) + ' | ' + currentUser.agency;
                 document.getElementById('sidebar-avatar').innerText = currentUser.initial;
+                applyRoleBasedNavigation();
                 
                 renderAll();
                 const savedTab = localStorage.getItem('smart_ics_tab') || 'home';
@@ -3283,19 +3494,30 @@
 
         function hasPermission(action) {
             if (!currentUser) return false;
-            const role = currentUser.role;
+            const role = getNormalizedRole(currentUser.role);
             switch (action) {
                 case 'NEW_INCIDENT': return role === 'Admin';
-                case 'CLOSE_INCIDENT': return role === 'Admin' || role === 'IC';
-                case 'EDIT_ICS': return role === 'Admin' || role === 'IC';
-                case 'EDIT_SAFETY': return role === 'Admin' || role === 'IC';
-                case 'EDIT_ZONE': return role === 'Admin' || role === 'IC' || role === 'Staff';
+                case 'CLOSE_INCIDENT': return role === 'Admin' || role === 'Commander';
+                case 'EDIT_ICS': return role === 'Admin' || role === 'Commander' || role === 'Liaison';
+                case 'EDIT_SAFETY': return role === 'Admin' || role === 'Commander';
+                case 'EDIT_ZONE': return role === 'Admin' || role === 'Commander';
+                case 'SELF_ZONE_CHECKOUT': return role === 'Operator';
+                case 'EDIT_RADIO': return role === 'Admin' || role === 'Commander' || role === 'Liaison';
                 case 'MANAGE_USERS': return role === 'Admin';
                 default: return false;
             }
         }
 
         function switchTab(tabId) {
+            if (!canAccessTab(tabId)) {
+                alert('สิทธิ์ของคุณไม่อนุญาตให้เข้าหน้านี้');
+                if (canAccessTab('dashboard')) {
+                    tabId = 'dashboard';
+                } else {
+                    tabId = 'home';
+                }
+            }
+
             if (!appData.activeIncident && appData.activeIncidents.length > 0) {
                 setSelectedIncident(appData.activeIncidents[0].id);
             }
@@ -3596,6 +3818,39 @@
                     </div>`;
                 }).join('')
                 : '<p class="text-sm text-slate-400 col-span-4">ไม่มีข้อมูลข่ายสื่อสาร</p>';
+
+            const commandStaff = appData.icsData.commandStaff || [];
+            const generalStaff = appData.icsData.generalStaff || [];
+            const icsOverviewContainer = document.getElementById('dashboard-ics-overview');
+            if (icsOverviewContainer) {
+                icsOverviewContainer.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="lg:col-span-1 bg-white/10 border border-white/15 rounded-xl p-4">
+                            <p class="text-[11px] uppercase tracking-wider text-blue-100 font-bold">Incident Commander</p>
+                            <p class="text-base font-black text-white mt-1">${escapeHtml(appData.icsData.ic.name || '-')}</p>
+                            <p class="text-xs text-blue-100/80 mt-1">${escapeHtml(appData.icsData.ic.phone || '-')}</p>
+                        </div>
+                        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            ${commandStaff.map((node) => `
+                                <div class="bg-white/10 border border-white/15 rounded-xl p-3">
+                                    <p class="text-[10px] uppercase tracking-wide text-blue-100/90 font-bold">${escapeHtml(node.title || '-')}</p>
+                                    <p class="text-sm font-bold text-white mt-1 truncate">${escapeHtml(node.name || '-')}</p>
+                                    <p class="text-[11px] text-blue-100/80 mt-1 truncate">${escapeHtml(node.phone || '-')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                        ${generalStaff.map((node) => `
+                            <div class="bg-white/10 border border-white/15 rounded-xl p-3">
+                                <p class="text-[10px] uppercase tracking-wide text-blue-100/90 font-bold">${escapeHtml(node.title || '-')}</p>
+                                <p class="text-sm font-bold text-white mt-1 truncate">${escapeHtml(node.name || '-')}</p>
+                                <p class="text-[11px] text-blue-100/80 mt-1 truncate">${escapeHtml(node.phone || '-')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
             
             renderRealtimePulseStatus();
             createIcons();
@@ -3644,7 +3899,7 @@
                             <span class="px-3 py-1 text-xs font-bold rounded-lg ${isDeploy ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">${p.status}</span>
                             <span class="text-[10px] text-slate-400 font-mono mt-1">${isDeploy ? 'เข้าพื้นที่: '+p.time : 'เวลา: '+p.time}</span>
                         </div>
-                        <button onclick="togglePersonnelStatus(${p.id})" class="text-xs font-bold px-4 py-2 border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 active:scale-95 transition-transform bg-white ${hasPermission('EDIT_ZONE')?'':'hidden'}">
+                        <button onclick="togglePersonnelStatus('${String(p.id)}')" class="text-xs font-bold px-4 py-2 border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 active:scale-95 transition-transform bg-white ${hasPermission('EDIT_ZONE')?'':'hidden'}">
                             เปลี่ยนสถานะ
                         </button>
                     </div>
@@ -3694,7 +3949,9 @@
             const activeRecords = appData.zoneRecords.filter(r => r.status === 'Active');
             document.getElementById('zone-active-count').innerText = `${activeRecords.length} คน`;
             
-            const listHtml = activeRecords.length > 0 ? activeRecords.map(r => `
+            const listHtml = activeRecords.length > 0 ? activeRecords.map(r => {
+                const canCheckOut = hasPermission('EDIT_ZONE') || (hasPermission('SELF_ZONE_CHECKOUT') && isOwnZoneRecord(r));
+                return `
                 <div class="bg-white border border-red-100 rounded-2xl p-4 shadow-sm mb-3 flex flex-col sm:flex-row justify-between sm:items-center gap-4 relative overflow-hidden">
                     <div class="absolute left-0 top-0 w-1.5 h-full bg-red-500"></div>
                     <div class="pl-2">
@@ -3707,11 +3964,12 @@
                             <span class="text-[11px] text-slate-500 font-mono"><i data-lucide="clock" class="w-3 h-3 inline pb-0.5"></i> In: ${r.timeIn}</span>
                         </div>
                     </div>
-                    <button onclick="handleZoneCheckOut(${r.id})" class="w-full sm:w-auto text-xs px-4 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors shadow-md active:scale-95 flex items-center justify-center gap-2 ${hasPermission('EDIT_ZONE')?'':'hidden'}">
+                    <button onclick="handleZoneCheckOut(${r.id})" class="w-full sm:w-auto text-xs px-4 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors shadow-md active:scale-95 flex items-center justify-center gap-2 ${canCheckOut ? '' : 'hidden'}">
                         <i data-lucide="log-out" class="w-3.5 h-3.5"></i> นำกำลังพลออก
                     </button>
                 </div>
-            `).join('') : `
+            `;
+            }).join('') : `
                 <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-slate-200">
                     <div class="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400"><i data-lucide="shield-check"></i></div>
                     <p class="text-slate-500 text-sm font-medium">ยังไม่มีบุคลากรในพื้นที่เสี่ยง</p>
@@ -3778,6 +4036,9 @@
         }
 
         function renderRadio() {
+            const canEditRadio = hasPermission('EDIT_RADIO');
+            const addRadioBtn = document.getElementById('btn-add-radio-channel');
+            if (addRadioBtn) addRadioBtn.classList.toggle('hidden', !canEditRadio);
             document.getElementById('radio-container').innerHTML = appData.radioChannels.length > 0 ? appData.radioChannels.map((r, idx) => `
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                     <div class="flex justify-between items-start mb-3">
@@ -3785,17 +4046,17 @@
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${r.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">${r.status}</span>
                     </div>
                     <div class="space-y-2.5">
-                        <input id="radio-name-${idx}" value="${escapeHtml(r.name)}" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-bold" placeholder="ชื่อข่าย">
-                        <input id="radio-frequency-${idx}" value="${escapeHtml(r.frequency)}" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-mono" placeholder="ความถี่">
-                        <input id="radio-assigned-${idx}" value="${escapeHtml(r.assigned)}" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm" placeholder="มอบหมายให้">
-                        <select id="radio-status-${idx}" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-bold">
+                        <input id="radio-name-${idx}" value="${escapeHtml(r.name)}" ${canEditRadio ? '' : 'disabled'} class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-bold ${canEditRadio ? '' : 'bg-slate-50 text-slate-500'}" placeholder="ชื่อข่าย">
+                        <input id="radio-frequency-${idx}" value="${escapeHtml(r.frequency)}" ${canEditRadio ? '' : 'disabled'} class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-mono ${canEditRadio ? '' : 'bg-slate-50 text-slate-500'}" placeholder="ความถี่">
+                        <input id="radio-assigned-${idx}" value="${escapeHtml(r.assigned)}" ${canEditRadio ? '' : 'disabled'} class="w-full p-2.5 border border-slate-200 rounded-lg text-sm ${canEditRadio ? '' : 'bg-slate-50 text-slate-500'}" placeholder="มอบหมายให้">
+                        <select id="radio-status-${idx}" ${canEditRadio ? '' : 'disabled'} class="w-full p-2.5 border border-slate-200 rounded-lg text-sm font-bold ${canEditRadio ? '' : 'bg-slate-50 text-slate-500'}">
                             <option value="Active" ${String(r.status) === 'Active' ? 'selected' : ''}>Active</option>
                             <option value="Standby" ${String(r.status) === 'Standby' ? 'selected' : ''}>Standby</option>
                             <option value="Offline" ${String(r.status) === 'Offline' ? 'selected' : ''}>Offline</option>
                         </select>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="handleSaveRadioChannel(${idx})" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg active:scale-95">บันทึก</button>
-                            <button onclick="handleDeleteRadioChannel(${idx})" class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2.5 rounded-lg active:scale-95">ลบช่อง</button>
+                            <button onclick="handleSaveRadioChannel(${idx})" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg active:scale-95 ${canEditRadio ? '' : 'hidden'}">บันทึก</button>
+                            <button onclick="handleDeleteRadioChannel(${idx})" class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2.5 rounded-lg active:scale-95 ${canEditRadio ? '' : 'hidden'}">ลบช่อง</button>
                         </div>
                     </div>
                 </div>
@@ -3809,6 +4070,7 @@
         }
 
         function handleAddRadioChannel() {
+            if(!hasPermission('EDIT_RADIO')) return;
             const name = prompt('ชื่อข่ายสื่อสาร', `ช่องใหม่ ${appData.radioChannels.length + 1}`);
             if (name === null) return;
             const frequency = prompt('ความถี่ (เช่น 155.700 MHz)', '');
@@ -3841,6 +4103,7 @@
         }
 
         function handleSaveRadioChannel(index) {
+            if(!hasPermission('EDIT_RADIO')) return;
             const channel = appData.radioChannels[index];
             if (!channel) return;
 
@@ -3867,6 +4130,7 @@
         }
 
         function handleDeleteRadioChannel(index) {
+            if(!hasPermission('EDIT_RADIO')) return;
             const channel = appData.radioChannels[index];
             if (!channel) return;
             if (!confirm(`ต้องการลบช่องสื่อสาร "${channel.name}" ใช่หรือไม่?`)) return;
@@ -3901,6 +4165,7 @@
 
             const usersHtml = Object.keys(appData.users).map(pin => {
                 const u = appData.users[pin];
+                const role = getDisplayRole(u.role);
                 return `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="p-4 flex items-center gap-3">
@@ -3914,9 +4179,11 @@
                     <td class="p-4 text-sm text-slate-600">${u.agency}</td>
                     <td class="p-4">
                         <span class="px-2 py-1 text-[10px] font-bold rounded-md ${
-                            u.role === 'Admin' ? 'bg-purple-100 text-purple-700' :
-                            u.role === 'IC' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
-                        }">${u.role}</span>
+                            role === 'Admin' ? 'bg-purple-100 text-purple-700' :
+                            role === 'Commander' ? 'bg-blue-100 text-blue-700' :
+                            role === 'Liaison' ? 'bg-cyan-100 text-cyan-700' :
+                            role === 'Operator' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                        }">${role}</span>
                     </td>
                     <td class="p-4 text-sm font-mono text-slate-500 tracking-wider">•••• (${pin})</td>
                     <td class="p-4 text-center">
@@ -3947,6 +4214,7 @@
                 showAuthScreen();
                 return;
             }
+            applyRoleBasedNavigation();
             renderHome();
             if(appData.activeIncident) {
                 renderDashboard(); renderICS(); renderLogs(); renderPersonnel(); renderZone(); renderRadio(); initTacMapView();
@@ -4271,7 +4539,7 @@
 
         function togglePersonnelStatus(id) {
             if(!hasPermission('EDIT_ZONE')) return;
-            const p = appData.personnel.find(x => x.id === id);
+            const p = appData.personnel.find(x => String(x.id) === String(id));
             if(!p) return;
 
             // บล็อกการถอนทีม หากยังมีสมาชิกอยู่ในพื้นที่เสี่ยง
@@ -4369,8 +4637,9 @@
         }
 
         function handleZoneCheckOut(recordId) {
-            if(!hasPermission('EDIT_ZONE')) return;
-            const record = appData.zoneRecords.find(r => r.id === recordId);
+            const record = appData.zoneRecords.find(r => String(r.id) === String(recordId));
+            const allowed = hasPermission('EDIT_ZONE') || (hasPermission('SELF_ZONE_CHECKOUT') && isOwnZoneRecord(record));
+            if(!allowed) return;
             if(record) {
                 if(!confirm(`ยืนยันนำกำลังพล "${record.name}" ออกจาก ${record.zone} ใช่หรือไม่?`)) return;
                 record.status = 'Completed';
@@ -4447,7 +4716,7 @@
             const initial = trimmedName.length > 0 ? trimmedName[0] : '?';
             const userId = 'u' + Date.now();
             
-            appData.users[pin] = { id: userId, name: name, role: role, agency: agency, initial: initial };
+            appData.users[pin] = { id: userId, name: name, role: getNormalizedRole(role), agency: agency, initial: initial };
             
             e.target.reset();
             document.getElementById('newUserModal').classList.add('hidden');
@@ -4466,12 +4735,12 @@
             if (name === null) return;
             const agency = prompt('หน่วยงานใหม่', user.agency || '');
             if (agency === null) return;
-            const role = prompt('สิทธิ์ใหม่ (Admin / IC / Staff)', user.role || 'Staff');
+            const role = prompt('สิทธิ์ใหม่ (Admin / Commander / Liaison / Operator / Guest)', getDisplayRole(user.role) || 'Guest');
             if (role === null) return;
 
             const roleTrim = role.trim();
-            if (!['Admin', 'IC', 'Staff'].includes(roleTrim)) {
-                alert('สิทธิ์ไม่ถูกต้อง กรุณาระบุ Admin, IC หรือ Staff');
+            if (!['Admin', 'Commander', 'Liaison', 'Operator', 'Guest'].includes(roleTrim)) {
+                alert('สิทธิ์ไม่ถูกต้อง กรุณาระบุ Admin, Commander, Liaison, Operator หรือ Guest');
                 return;
             }
 
@@ -4479,13 +4748,13 @@
 
             user.name = name.trim() || user.name;
             user.agency = agency.trim() || user.agency;
-            user.role = roleTrim;
+            user.role = getNormalizedRole(roleTrim);
             user.initial = user.name ? user.name.charAt(0) : '?';
 
             if (currentUser && currentUser.id === userId) {
                 currentUser = { ...user };
                 document.getElementById('sidebar-username').innerText = currentUser.name;
-                document.getElementById('sidebar-role').innerText = currentUser.role + ' | ' + currentUser.agency;
+                document.getElementById('sidebar-role').innerText = getDisplayRole(currentUser.role) + ' | ' + currentUser.agency;
                 document.getElementById('sidebar-avatar').innerText = currentUser.initial;
             }
 
@@ -4561,7 +4830,8 @@
                     personnel: appData.sourceData.personnel,
                     zoneRecords: appData.sourceData.zoneRecords,
                     ics: appData.sourceData.ics,
-                    radios: appData.radioChannels
+                    radios: appData.radioChannels,
+                    tacmap: appData.sourceData.tacmap
                 });
                 realtimeLastSyncAt = getThTime();
                 renderRealtimePulseStatus();
