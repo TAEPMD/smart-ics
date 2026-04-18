@@ -102,8 +102,80 @@
         }
         @keyframes btnSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        .mobile-nav-shell {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.96) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .mobile-nav-quick {
+            background: rgba(241, 245, 249, 0.9);
+            color: #475569;
+            border: 1px solid rgba(203, 213, 225, 0.85);
+        }
+        .mobile-nav-quick.is-active {
+            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            color: #1d4ed8;
+            border-color: rgba(96, 165, 250, 0.55);
+        }
+        .mobile-nav-main {
+            color: #94a3b8;
+        }
+        .mobile-nav-main .mobile-nav-main-dot {
+            transform: scaleX(0.4);
+            opacity: 0;
+            transform-origin: center;
+            transition: all 0.2s ease;
+        }
+        .mobile-nav-main.is-active {
+            color: #2563eb;
+        }
+        .mobile-nav-main.is-active .mobile-nav-main-dot {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+        .mobile-nav-home {
+            transform: translateY(-14px);
+        }
+        .mobile-nav-home-orb {
+            background: linear-gradient(145deg, #3b82f6 0%, #4f46e5 100%);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .mobile-nav-home.is-active .mobile-nav-home-orb {
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.42);
+        }
+        .mobile-nav-home-label {
+            color: #64748b;
+        }
+        .mobile-nav-home.is-active .mobile-nav-home-label {
+            color: #1d4ed8;
+        }
+
         body.dark-mode { background-color: #020617; color: #e2e8f0; }
         body.dark-mode .glass { background: rgba(15, 23, 42, 0.88); border-bottom-color: rgba(148, 163, 184, 0.25); }
+        body.dark-mode .mobile-nav-shell {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.97) 100%);
+            border-color: rgba(71, 85, 105, 0.7);
+            box-shadow: 0 -8px 26px rgba(2, 6, 23, 0.75);
+        }
+        body.dark-mode .mobile-nav-quick {
+            background: rgba(15, 23, 42, 0.9);
+            color: #cbd5e1;
+            border-color: rgba(71, 85, 105, 0.8);
+        }
+        body.dark-mode .mobile-nav-quick.is-active {
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.4) 0%, rgba(67, 56, 202, 0.4) 100%);
+            color: #bfdbfe;
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+        body.dark-mode .mobile-nav-main { color: #94a3b8; }
+        body.dark-mode .mobile-nav-main.is-active { color: #60a5fa; }
+        body.dark-mode .mobile-nav-home-label { color: #94a3b8; }
+        body.dark-mode .mobile-nav-home.is-active .mobile-nav-home-label { color: #93c5fd; }
         body.dark-mode .bg-white { background-color: #0f172a !important; }
         body.dark-mode .bg-slate-50 { background-color: #111827 !important; }
         body.dark-mode .bg-slate-100 { background-color: #1f2937 !important; }
@@ -274,7 +346,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 pb-20 md:pb-0 overflow-y-auto relative h-full w-full custom-scroll scroll-smooth">
+    <main class="flex-1 pb-24 md:pb-0 overflow-y-auto relative h-full w-full custom-scroll scroll-smooth">
         
         <!-- Desktop Header -->
         <div class="hidden md:flex justify-between items-center bg-white px-8 py-3 border-b border-slate-200 sticky top-0 z-30 shadow-sm">
@@ -729,53 +801,61 @@
     </main>
 
     <!-- Mobile Bottom Navigation (Tab Bar) -->
-    <nav class="md:hidden glass fixed bottom-0 w-full z-50 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.05)] border-t border-slate-200/50">
-        <div class="flex items-center justify-end gap-2 px-3 pt-2">
-            <button onclick="switchTab('radio')" class="mobile-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 transition-colors" data-target="radio">
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 px-2.5 pb-safe">
+        <div class="mobile-nav-shell rounded-[28px] overflow-hidden">
+        <div class="flex items-center justify-end gap-2 px-3 pt-2.5">
+            <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-quick flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="radio">
                 <i data-lucide="radio" class="w-4 h-4"></i>
-                <span class="text-[10px] font-bold">ข่ายวิทยุ</span>
+                <span>ข่ายวิทยุ</span>
             </button>
-            <button id="mobile-nav-users" onclick="switchTab('users')" class="mobile-nav-btn hidden items-center gap-1.5 px-3 py-2 rounded-full bg-slate-100 text-slate-600 border border-slate-200 transition-colors" data-target="users">
+            <button id="mobile-nav-users" onclick="switchTab('users')" class="mobile-nav-btn mobile-nav-quick hidden items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="users">
                 <i data-lucide="user-cog" class="w-4 h-4"></i>
-                <span class="text-[10px] font-bold">ผู้ใช้งาน</span>
+                <span>ผู้ใช้งาน</span>
             </button>
         </div>
-        <div class="flex justify-around items-end pt-2 pb-1 px-1">
-            <button onclick="switchTab('dashboard')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="dashboard">
+        <div class="flex justify-around items-end pt-2 pb-1.5 px-1.5">
+            <button onclick="switchTab('dashboard')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="dashboard">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">ภาพรวม</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('ics')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="ics">
+            <button onclick="switchTab('ics')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="ics">
                 <i data-lucide="network" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">ผังฯ</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
 
             <!-- Center FAB: หน้าหลัก -->
-            <div class="flex flex-col items-center flex-1 -mt-5">
-                <button onclick="switchTab('home')" class="mobile-nav-btn active flex flex-col items-center gap-1 active:scale-95 transition-transform" data-target="home">
-                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full p-3 shadow-lg shadow-blue-300/60 border-2 border-white">
+            <div class="flex flex-col items-center flex-1">
+                <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-1 active:scale-95 transition-transform" data-target="home" aria-current="page">
+                    <div class="mobile-nav-home-orb rounded-full p-3">
                         <i data-lucide="home" class="w-5 h-5 text-white"></i>
                     </div>
-                    <span class="text-[9px] font-bold text-blue-600 mt-0.5">หน้าหลัก</span>
+                    <span class="mobile-nav-home-label text-[9px] font-bold mt-0.5">หน้าหลัก</span>
                 </button>
             </div>
 
-            <button onclick="switchTab('personnel')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="personnel">
+            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="personnel">
                 <i data-lucide="users" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">ลงทะเบียน</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('zone')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="zone">
+            <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="zone">
                 <i data-lucide="map-pin" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">โซน</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('tacmap')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="tacmap">
+            <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="tacmap">
                 <i data-lucide="map" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">TACMAP</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('logs')" class="mobile-nav-btn flex flex-col items-center gap-1 flex-1 p-1 text-slate-400 transition-colors" data-target="logs">
+            <button onclick="switchTab('logs')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="logs">
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">บันทึก</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
+        </div>
         </div>
     </nav>
 
@@ -3891,13 +3971,10 @@
             });
 
             document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
-                if (btn.dataset.target === tabId) {
-                    btn.classList.add('text-blue-600');
-                    btn.classList.remove('text-slate-400');
-                } else {
-                    btn.classList.remove('text-blue-600');
-                    btn.classList.add('text-slate-400');
-                }
+                const isActive = btn.dataset.target === tabId;
+                btn.classList.toggle('is-active', isActive);
+                if (isActive) btn.setAttribute('aria-current', 'page');
+                else btn.removeAttribute('aria-current');
             });
             if (tabId === 'tacmap') {
                 initTacMapView();
