@@ -559,27 +559,36 @@
             <div id="view-tacmap" class="view-section">
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-slate-800 tracking-tight">แผนที่ปฏิบัติการ (TACMAP)</h2>
-                    <p class="text-sm text-slate-500 mt-1">ปักหมุดจุดเกิดเหตุ และกำหนดรัศมีพื้นที่ปฏิบัติการ</p>
+                    <p class="text-sm text-slate-500 mt-1">จัดการจุดเกิดเหตุ หมุดภาคสนาม และเส้นทางปฏิบัติการ พร้อม sync แบบ real-time ทุกเครื่อง</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-sm lg:col-span-1">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">Latitude</label>
-                            <input id="tacmap-lat" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="13.7563">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">Longitude</label>
-                            <input id="tacmap-lng" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="100.5018">
-                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                                    <span class="bg-red-100 text-red-600 rounded-lg p-1.5"><i data-lucide="siren" class="w-4 h-4"></i></span>
+                                    จุดเกิดเหตุหลัก
+                                </h3>
+                                <span id="tacmap-mode-badge" class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">โหมดปกติ</span>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">Latitude</label>
+                                <input id="tacmap-lat" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="13.7563">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">Longitude</label>
+                                <input id="tacmap-lng" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="100.5018">
+                            </div>
 
-                        <div class="grid grid-cols-1 gap-2">
-                            <button onclick="handleTacMapUseCurrentLocation()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                <i data-lucide="crosshair" class="w-4 h-4"></i> ดึงพิกัดปัจจุบัน
-                            </button>
-                            <button onclick="handleTacMapApplyCoordinates()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                <i data-lucide="map-pin" class="w-4 h-4"></i> ปักหมุดจากค่า Lat/Long
-                            </button>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="handleTacMapUseCurrentLocation()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="crosshair" class="w-4 h-4"></i> ดึงพิกัดปัจจุบัน
+                                </button>
+                                <button onclick="handleTacMapApplyCoordinates()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i> ปักหมุดจุดเกิดเหตุ
+                                </button>
+                            </div>
                         </div>
 
                         <div class="pt-2 border-t border-slate-100 space-y-3">
@@ -607,6 +616,30 @@
                             <p class="text-[11px] text-slate-400">แสดงวง 3 ชั้น: แดง (Hot), เหลือง (Warm), เขียว (Cold) และปรับรัศมีได้แยกกัน</p>
                         </div>
 
+                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">ชื่อหมุด / ชื่อเส้นทาง</label>
+                                <input id="tacmap-object-name" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="handleTacMapEnableAddMarkerMode()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="map-pinned" class="w-4 h-4"></i> เพิ่มหมุด
+                                </button>
+                                <button onclick="handleTacMapStartRouteMode()" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="route" class="w-4 h-4"></i> ลากเส้นทาง
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="handleTacMapFinishRoute()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="check-check" class="w-4 h-4"></i> บันทึกเส้นทาง
+                                </button>
+                                <button onclick="handleTacMapCancelMode()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i> ยกเลิกโหมด
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-slate-400">เลือกโหมดแล้วคลิกบนแผนที่เพื่อวางหมุดหรือเพิ่มจุดของเส้นทาง เส้นทางที่สร้างจะบันทึกและ sync ทุกเครื่อง</p>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                             <button onclick="handleTacMapResetPin()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl active:scale-95 flex items-center justify-center gap-1">
                                 <i data-lucide="map-pin-off" class="w-3.5 h-3.5"></i> รีเซ็ตหมุด
@@ -614,6 +647,23 @@
                             <button onclick="handleTacMapResetRadius()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-xs font-bold px-3 py-2 rounded-xl active:scale-95 flex items-center justify-center gap-1">
                                 <i data-lucide="circle-slash" class="w-3.5 h-3.5"></i> รีเซ็ตรัศมี
                             </button>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">หมุดภาคสนาม</h4>
+                                    <span id="tacmap-markers-count" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">0 จุด</span>
+                                </div>
+                                <div id="tacmap-markers-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">เส้นทางปฏิบัติการ</h4>
+                                    <span id="tacmap-routes-count" class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-full">0 เส้น</span>
+                                </div>
+                                <div id="tacmap-routes-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -1061,6 +1111,12 @@
         let tacMapWarmCircle = null;
         let tacMapColdCircle = null;
         let tacMapTileLayer = null;
+        let tacMapMarkersLayerGroup = null;
+        let tacMapRoutesLayerGroup = null;
+        let tacMapObjectLayers = { markers: {}, routes: {} };
+        let tacMapInteractionMode = 'default';
+        let tacMapDraftRoute = null;
+        let tacMapDraftRouteLine = null;
         let tacMapPersistTimers = {};
         let lastActionButton = null;
         let firebaseInitPromise = null;
@@ -1090,6 +1146,7 @@
             'deleteUser'
         ]);
         const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState']);
+        const TACMAP_ROUTE_COLORS = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626', '#0891b2'];
 
         const TAB_ACCESS_BY_ROLE = {
             Admin: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio', 'users'],
@@ -1664,7 +1721,9 @@
                     ColdRadius: Number(callArgs[5] || 1500),
                     Zoom: Number(callArgs[6] || 13),
                     UpdatedAt: callArgs[7] || '',
-                    UpdatedBy: callArgs[8] || ''
+                    UpdatedBy: callArgs[8] || '',
+                    Markers: normalizeTacMapMarkers(callArgs[9]),
+                    Routes: normalizeTacMapRoutes(callArgs[10])
                 }, { merge: true });
                 return true;
             }
@@ -1717,6 +1776,53 @@
                 && !!getConfiguredAppsScriptWebAppUrl();
         }
 
+        function generateTacMapObjectId(prefix) {
+            return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        }
+
+        function normalizeTacMapMarkers(rawMarkers) {
+            const list = Array.isArray(rawMarkers) ? rawMarkers : [];
+            return list
+                .map((marker, index) => {
+                    const lat = Number(marker && marker.lat);
+                    const lng = Number(marker && marker.lng);
+                    if (!isValidLatLng(lat, lng)) return null;
+                    return {
+                        id: String(marker.id || generateTacMapObjectId('marker_' + index)),
+                        name: String(marker.name || `หมุด ${index + 1}`).trim() || `หมุด ${index + 1}`,
+                        lat: lat,
+                        lng: lng
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function normalizeTacMapRoutes(rawRoutes) {
+            const list = Array.isArray(rawRoutes) ? rawRoutes : [];
+            return list
+                .map((route, index) => {
+                    const points = Array.isArray(route && route.points)
+                        ? route.points
+                            .map((point) => ({ lat: Number(point && point.lat), lng: Number(point && point.lng) }))
+                            .filter((point) => isValidLatLng(point.lat, point.lng))
+                        : [];
+                    if (points.length < 2) return null;
+                    const color = String(route.color || TACMAP_ROUTE_COLORS[index % TACMAP_ROUTE_COLORS.length]).trim() || TACMAP_ROUTE_COLORS[index % TACMAP_ROUTE_COLORS.length];
+                    return {
+                        id: String(route.id || generateTacMapObjectId('route_' + index)),
+                        name: String(route.name || `เส้นทาง ${index + 1}`).trim() || `เส้นทาง ${index + 1}`,
+                        color: color,
+                        points: points
+                    };
+                })
+                .filter(Boolean);
+        }
+
+        function getTacMapRouteColor(routeId) {
+            const seed = Array.from(String(routeId || 'route')).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+            return TACMAP_ROUTE_COLORS[seed % TACMAP_ROUTE_COLORS.length];
+        }
+
         function normalizeTacMapStatePayload(incidentId, state) {
             const source = state && typeof state === 'object' ? state : {};
             return {
@@ -1727,6 +1833,8 @@
                 warmRadius: Math.max(100, Number(source.warmRadius || 800)),
                 coldRadius: Math.max(200, Number(source.coldRadius || 1500)),
                 zoom: Math.max(3, Number(source.zoom || 13)),
+                markers: normalizeTacMapMarkers(source.markers),
+                routes: normalizeTacMapRoutes(source.routes),
                 updatedAt: String(source.updatedAt || getThTime()),
                 updatedBy: String(source.updatedBy || (currentUser ? currentUser.name : 'system'))
             };
@@ -1744,15 +1852,25 @@
                 warmRadius: normalized.warmRadius,
                 coldRadius: normalized.coldRadius,
                 zoom: normalized.zoom,
+                markers: normalized.markers.map((marker) => ({ ...marker })),
+                routes: normalized.routes.map((route) => ({ ...route, points: route.points.map((point) => ({ ...point })) })),
                 updatedAt: normalized.updatedAt,
                 updatedBy: normalized.updatedBy
             };
 
             const existing = appData.sourceData.tacmap.find((record) => String(record.incidentId) === key);
             if (existing) {
-                Object.assign(existing, { ...normalized });
+                Object.assign(existing, {
+                    ...normalized,
+                    markers: normalized.markers.map((marker) => ({ ...marker })),
+                    routes: normalized.routes.map((route) => ({ ...route, points: route.points.map((point) => ({ ...point })) }))
+                });
             } else {
-                appData.sourceData.tacmap.push({ ...normalized });
+                appData.sourceData.tacmap.push({
+                    ...normalized,
+                    markers: normalized.markers.map((marker) => ({ ...marker })),
+                    routes: normalized.routes.map((route) => ({ ...route, points: route.points.map((point) => ({ ...point })) }))
+                });
             }
 
             if (saveLocal) saveTacMapState();
@@ -1778,7 +1896,9 @@
                     normalized.coldRadius,
                     normalized.zoom,
                     normalized.updatedAt,
-                    normalized.updatedBy
+                    normalized.updatedBy,
+                    normalized.markers,
+                    normalized.routes
                 ], null, true);
                 delete tacMapPersistTimers[key];
             }, 400);
@@ -2084,11 +2204,10 @@
 
         function getTacMapIncidentState(incidentId) {
             const key = String(incidentId || '');
-            if (!key) return { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, updatedAt: '', updatedBy: '' };
+            if (!key) return { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, markers: [], routes: [], updatedAt: '', updatedBy: '' };
             if (!tacMapStateByIncident[key]) {
-                tacMapStateByIncident[key] = { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, updatedAt: '', updatedBy: '' };
+                tacMapStateByIncident[key] = { lat: '', lng: '', hotRadius: 300, warmRadius: 800, coldRadius: 1500, zoom: 13, markers: [], routes: [], updatedAt: '', updatedBy: '' };
             }
-            // Backward compatibility: migrate old single-radius state
             if (tacMapStateByIncident[key].radius != null) {
                 const legacyRadius = Math.max(100, Number(tacMapStateByIncident[key].radius || 800));
                 tacMapStateByIncident[key].hotRadius = Math.max(50, Math.round(legacyRadius * 0.4));
@@ -2096,11 +2215,151 @@
                 tacMapStateByIncident[key].coldRadius = Math.max(200, Math.round(legacyRadius * 1.8));
                 delete tacMapStateByIncident[key].radius;
             }
+            tacMapStateByIncident[key].markers = normalizeTacMapMarkers(tacMapStateByIncident[key].markers);
+            tacMapStateByIncident[key].routes = normalizeTacMapRoutes(tacMapStateByIncident[key].routes);
             return tacMapStateByIncident[key];
         }
 
         function isValidLatLng(lat, lng) {
             return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        }
+
+        function getTacMapNameInputValue() {
+            return String(document.getElementById('tacmap-object-name')?.value || '').trim();
+        }
+
+        function setTacMapInteractionMode(mode) {
+            tacMapInteractionMode = mode || 'default';
+            const badge = document.getElementById('tacmap-mode-badge');
+            if (!badge) return;
+            const config = {
+                default: { text: 'โหมดปกติ', className: 'bg-slate-100 text-slate-600 border-slate-200' },
+                'add-marker': { text: 'รอวางหมุด', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                'route-draw': { text: 'กำลังลากเส้นทาง', className: 'bg-amber-50 text-amber-700 border-amber-200' }
+            };
+            const next = config[tacMapInteractionMode] || config.default;
+            badge.className = `text-[10px] font-bold px-2 py-1 rounded-full border ${next.className}`;
+            badge.innerText = next.text;
+        }
+
+        function ensureTacMapLayerGroups() {
+            if (!tacMapInstance) return;
+            if (!tacMapRoutesLayerGroup) tacMapRoutesLayerGroup = L.layerGroup().addTo(tacMapInstance);
+            if (!tacMapMarkersLayerGroup) tacMapMarkersLayerGroup = L.layerGroup().addTo(tacMapInstance);
+        }
+
+        function renderTacMapObjectLists() {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const markersList = document.getElementById('tacmap-markers-list');
+            const routesList = document.getElementById('tacmap-routes-list');
+            const markersCount = document.getElementById('tacmap-markers-count');
+            const routesCount = document.getElementById('tacmap-routes-count');
+            if (markersCount) markersCount.innerText = `${state.markers.length} จุด`;
+            if (routesCount) routesCount.innerText = `${state.routes.length} เส้น`;
+            if (markersList) {
+                markersList.innerHTML = state.markers.length > 0 ? state.markers.map((marker) => `
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <button onclick="handleTacMapFocusMarker('${marker.id}')" class="text-left flex-1 min-w-0">
+                                <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(marker.name)}</div>
+                                <div class="text-[10px] text-slate-400 font-mono truncate">${Number(marker.lat).toFixed(5)}, ${Number(marker.lng).toFixed(5)}</div>
+                            </button>
+                            <div class="flex items-center gap-1">
+                                <button onclick="handleTacMapRenameMarker('${marker.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="handleTacMapDeleteMarker('${marker.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีหมุดภาคสนาม</div>';
+            }
+            if (routesList) {
+                routesList.innerHTML = state.routes.length > 0 ? state.routes.map((route) => `
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <button onclick="handleTacMapFocusRoute('${route.id}')" class="text-left flex-1 min-w-0">
+                                <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(route.name)}</div>
+                                <div class="text-[10px] text-slate-400">${route.points.length} จุด • สี ${escapeHtml(route.color)}</div>
+                            </button>
+                            <div class="flex items-center gap-1">
+                                <button onclick="handleTacMapRenameRoute('${route.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="handleTacMapDeleteRoute('${route.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีเส้นทางปฏิบัติการ</div>';
+            }
+            createIcons();
+        }
+
+        function renderTacMapObjectsOnMap() {
+            if (!tacMapInstance || !appData.activeIncident) return;
+            ensureTacMapLayerGroups();
+            tacMapMarkersLayerGroup.clearLayers();
+            tacMapRoutesLayerGroup.clearLayers();
+            tacMapObjectLayers = { markers: {}, routes: {} };
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+
+            state.routes.forEach((route) => {
+                const line = L.polyline(route.points.map((point) => [point.lat, point.lng]), {
+                    color: route.color || getTacMapRouteColor(route.id),
+                    weight: 4,
+                    opacity: 0.85
+                }).addTo(tacMapRoutesLayerGroup);
+                line.bindPopup(`<b>${escapeHtml(route.name)}</b><br><span style="font-size:11px">${route.points.length} จุด</span>`);
+                tacMapObjectLayers.routes[route.id] = line;
+            });
+
+            state.markers.forEach((marker) => {
+                const layer = L.marker([marker.lat, marker.lng], { draggable: true }).addTo(tacMapMarkersLayerGroup);
+                layer.bindPopup(`<b>${escapeHtml(marker.name)}</b><br><span style="font-size:11px">Lat: ${Number(marker.lat).toFixed(5)}<br>Lng: ${Number(marker.lng).toFixed(5)}</span>`);
+                layer.on('dragend', function(ev) {
+                    const latlng = ev.target.getLatLng();
+                    const nextState = getTacMapIncidentState(appData.activeIncident.id);
+                    const target = nextState.markers.find((item) => item.id === marker.id);
+                    if (!target) return;
+                    target.lat = latlng.lat;
+                    target.lng = latlng.lng;
+                    nextState.updatedAt = getThTime();
+                    nextState.updatedBy = currentUser ? currentUser.name : 'system';
+                    upsertLocalTacMapRecord(appData.activeIncident.id, nextState, true);
+                    renderTacMapObjectLists();
+                    renderTacMapObjectsOnMap();
+                    scheduleTacMapStateSync(appData.activeIncident.id);
+                });
+                tacMapObjectLayers.markers[marker.id] = layer;
+            });
+
+            if (tacMapDraftRouteLine) tacMapDraftRouteLine.bringToFront();
+        }
+
+        function refreshTacMapBaseInputs() {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const latEl = document.getElementById('tacmap-lat');
+            const lngEl = document.getElementById('tacmap-lng');
+            const hotRadiusEl = document.getElementById('tacmap-radius-hot');
+            const warmRadiusEl = document.getElementById('tacmap-radius-warm');
+            const coldRadiusEl = document.getElementById('tacmap-radius-cold');
+            const hotLabel = document.getElementById('tacmap-radius-hot-label');
+            const warmLabel = document.getElementById('tacmap-radius-warm-label');
+            const coldLabel = document.getElementById('tacmap-radius-cold-label');
+            if (latEl) latEl.value = state.lat !== '' ? Number(state.lat).toFixed(6) : '';
+            if (lngEl) lngEl.value = state.lng !== '' ? Number(state.lng).toFixed(6) : '';
+            if (hotRadiusEl) hotRadiusEl.value = Number(state.hotRadius || 300);
+            if (warmRadiusEl) warmRadiusEl.value = Number(state.warmRadius || 800);
+            if (coldRadiusEl) coldRadiusEl.value = Number(state.coldRadius || 1500);
+            if (hotLabel) hotLabel.innerText = `${Number(state.hotRadius || 300)} m`;
+            if (warmLabel) warmLabel.innerText = `${Number(state.warmRadius || 800)} m`;
+            if (coldLabel) coldLabel.innerText = `${Number(state.coldRadius || 1500)} m`;
+        }
+
+        function clearTacMapDraftRoute() {
+            if (tacMapDraftRouteLine && tacMapInstance) {
+                tacMapInstance.removeLayer(tacMapDraftRouteLine);
+            }
+            tacMapDraftRouteLine = null;
+            tacMapDraftRoute = null;
         }
 
         function applyTacMapPin(lat, lng, shouldPan = true) {
@@ -2119,34 +2378,16 @@
             else tacMapMarker = L.marker([lat, lng]).addTo(tacMapInstance);
 
             const incidentName = appData.activeIncident ? appData.activeIncident.name : 'จุดเกิดเหตุ';
-            tacMapMarker.bindPopup(`<b>${incidentName}</b><br><span style="font-size:11px">Lat: ${Number(lat).toFixed(5)}<br>Lng: ${Number(lng).toFixed(5)}</span>`);
+            tacMapMarker.bindPopup(`<b>${escapeHtml(incidentName)}</b><br><span style="font-size:11px">Lat: ${Number(lat).toFixed(5)}<br>Lng: ${Number(lng).toFixed(5)}</span>`);
 
             if (tacMapColdCircle) tacMapColdCircle.setLatLng([lat, lng]).setRadius(coldRadius);
-            else tacMapColdCircle = L.circle([lat, lng], {
-                radius: coldRadius,
-                color: '#16a34a',
-                weight: 2,
-                fillColor: '#86efac',
-                fillOpacity: 0.18
-            }).addTo(tacMapInstance);
+            else tacMapColdCircle = L.circle([lat, lng], { radius: coldRadius, color: '#16a34a', weight: 2, fillColor: '#86efac', fillOpacity: 0.18 }).addTo(tacMapInstance);
 
             if (tacMapWarmCircle) tacMapWarmCircle.setLatLng([lat, lng]).setRadius(warmRadius);
-            else tacMapWarmCircle = L.circle([lat, lng], {
-                radius: warmRadius,
-                color: '#f59e0b',
-                weight: 2,
-                fillColor: '#fde68a',
-                fillOpacity: 0.24
-            }).addTo(tacMapInstance);
+            else tacMapWarmCircle = L.circle([lat, lng], { radius: warmRadius, color: '#f59e0b', weight: 2, fillColor: '#fde68a', fillOpacity: 0.24 }).addTo(tacMapInstance);
 
             if (tacMapHotCircle) tacMapHotCircle.setLatLng([lat, lng]).setRadius(hotRadius);
-            else tacMapHotCircle = L.circle([lat, lng], {
-                radius: hotRadius,
-                color: '#dc2626',
-                weight: 2,
-                fillColor: '#fca5a5',
-                fillOpacity: 0.28
-            }).addTo(tacMapInstance);
+            else tacMapHotCircle = L.circle([lat, lng], { radius: hotRadius, color: '#dc2626', weight: 2, fillColor: '#fca5a5', fillOpacity: 0.28 }).addTo(tacMapInstance);
 
             if (shouldPan) tacMapInstance.setView([lat, lng], Math.max(tacMapInstance.getZoom(), 13));
 
@@ -2156,12 +2397,143 @@
             state.updatedAt = getThTime();
             state.updatedBy = currentUser ? currentUser.name : 'system';
             upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            refreshTacMapBaseInputs();
             scheduleTacMapStateSync(appData.activeIncident.id);
+        }
 
-            const latEl = document.getElementById('tacmap-lat');
-            const lngEl = document.getElementById('tacmap-lng');
-            if (latEl) latEl.value = Number(lat).toFixed(6);
-            if (lngEl) lngEl.value = Number(lng).toFixed(6);
+        function handleTacMapEnableAddMarkerMode() {
+            if (!appData.activeIncident) return;
+            setTacMapInteractionMode('add-marker');
+        }
+
+        function handleTacMapStartRouteMode() {
+            if (!appData.activeIncident) return;
+            const name = getTacMapNameInputValue() || `เส้นทาง ${getTacMapIncidentState(appData.activeIncident.id).routes.length + 1}`;
+            clearTacMapDraftRoute();
+            tacMapDraftRoute = { id: generateTacMapObjectId('route'), name: name, color: getTacMapRouteColor(name), points: [] };
+            tacMapDraftRouteLine = L.polyline([], { color: tacMapDraftRoute.color, weight: 4, dashArray: '8 8', opacity: 0.9 }).addTo(tacMapInstance);
+            setTacMapInteractionMode('route-draw');
+        }
+
+        function handleTacMapFinishRoute() {
+            if (!appData.activeIncident || !tacMapDraftRoute) return;
+            if (!Array.isArray(tacMapDraftRoute.points) || tacMapDraftRoute.points.length < 2) {
+                alert('เส้นทางต้องมีอย่างน้อย 2 จุด');
+                return;
+            }
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const savedRoute = { ...tacMapDraftRoute, points: tacMapDraftRoute.points.map((point) => ({ ...point })) };
+            state.routes.push(savedRoute);
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            clearTacMapDraftRoute();
+            setTacMapInteractionMode('default');
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+            const routeLayer = tacMapObjectLayers.routes[savedRoute.id];
+            if (routeLayer && tacMapInstance) {
+                tacMapInstance.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+            }
+        }
+
+        function handleTacMapCancelMode() {
+            clearTacMapDraftRoute();
+            setTacMapInteractionMode('default');
+        }
+
+        function handleTacMapMapClick(latlng) {
+            if (!appData.activeIncident) return;
+            if (tacMapInteractionMode === 'add-marker') {
+                const state = getTacMapIncidentState(appData.activeIncident.id);
+                const name = getTacMapNameInputValue() || `หมุด ${state.markers.length + 1}`;
+                state.markers.push({ id: generateTacMapObjectId('marker'), name: name, lat: latlng.lat, lng: latlng.lng });
+                state.updatedAt = getThTime();
+                state.updatedBy = currentUser ? currentUser.name : 'system';
+                upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+                setTacMapInteractionMode('default');
+                renderTacMapObjectsOnMap();
+                renderTacMapObjectLists();
+                scheduleTacMapStateSync(appData.activeIncident.id);
+                return;
+            }
+            if (tacMapInteractionMode === 'route-draw' && tacMapDraftRoute) {
+                tacMapDraftRoute.points.push({ lat: latlng.lat, lng: latlng.lng });
+                if (tacMapDraftRouteLine) tacMapDraftRouteLine.setLatLngs(tacMapDraftRoute.points.map((point) => [point.lat, point.lng]));
+                return;
+            }
+            applyTacMapPin(latlng.lat, latlng.lng, false);
+        }
+
+        function handleTacMapFocusMarker(markerId) {
+            const layer = tacMapObjectLayers.markers[markerId];
+            if (!layer || !tacMapInstance) return;
+            tacMapInstance.panTo(layer.getLatLng());
+            layer.openPopup();
+        }
+
+        function handleTacMapFocusRoute(routeId) {
+            const layer = tacMapObjectLayers.routes[routeId];
+            if (!layer || !tacMapInstance) return;
+            tacMapInstance.fitBounds(layer.getBounds(), { padding: [40, 40] });
+            layer.openPopup();
+        }
+
+        function handleTacMapRenameMarker(markerId) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const marker = state.markers.find((item) => item.id === markerId);
+            if (!marker) return;
+            const nextName = prompt('แก้ไขชื่อหมุด', marker.name || '');
+            if (nextName === null) return;
+            marker.name = String(nextName).trim() || marker.name;
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+        }
+
+        function handleTacMapDeleteMarker(markerId) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            state.markers = state.markers.filter((item) => item.id !== markerId);
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+        }
+
+        function handleTacMapRenameRoute(routeId) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const route = state.routes.find((item) => item.id === routeId);
+            if (!route) return;
+            const nextName = prompt('แก้ไขชื่อเส้นทาง', route.name || '');
+            if (nextName === null) return;
+            route.name = String(nextName).trim() || route.name;
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+        }
+
+        function handleTacMapDeleteRoute(routeId) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            state.routes = state.routes.filter((item) => item.id !== routeId);
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
         }
 
         function initTacMapView() {
@@ -2172,28 +2544,8 @@
             }
 
             const state = getTacMapIncidentState(appData.activeIncident.id);
-            const latEl = document.getElementById('tacmap-lat');
-            const lngEl = document.getElementById('tacmap-lng');
-            const hotRadiusEl = document.getElementById('tacmap-radius-hot');
-            const warmRadiusEl = document.getElementById('tacmap-radius-warm');
-            const coldRadiusEl = document.getElementById('tacmap-radius-cold');
-            const hotLabel = document.getElementById('tacmap-radius-hot-label');
-            const warmLabel = document.getElementById('tacmap-radius-warm-label');
-            const coldLabel = document.getElementById('tacmap-radius-cold-label');
-
-            if (latEl) latEl.value = state.lat !== '' ? Number(state.lat).toFixed(6) : '';
-            if (lngEl) lngEl.value = state.lng !== '' ? Number(state.lng).toFixed(6) : '';
-            if (hotRadiusEl) hotRadiusEl.value = Number(state.hotRadius || 300);
-            if (warmRadiusEl) warmRadiusEl.value = Number(state.warmRadius || 800);
-            if (coldRadiusEl) coldRadiusEl.value = Number(state.coldRadius || 1500);
-            if (hotLabel) hotLabel.innerText = `${Number(state.hotRadius || 300)} m`;
-            if (warmLabel) warmLabel.innerText = `${Number(state.warmRadius || 800)} m`;
-            if (coldLabel) coldLabel.innerText = `${Number(state.coldRadius || 1500)} m`;
-
             const fallbackCenter = [13.7563, 100.5018];
-            const initialCenter = isValidLatLng(Number(state.lat), Number(state.lng))
-                ? [Number(state.lat), Number(state.lng)]
-                : fallbackCenter;
+            const initialCenter = isValidLatLng(Number(state.lat), Number(state.lng)) ? [Number(state.lat), Number(state.lng)] : fallbackCenter;
             const initialZoom = Number(state.zoom || 13);
 
             if (!tacMapInstance) {
@@ -2201,9 +2553,10 @@
                 tacMapTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(tacMapInstance);
+                ensureTacMapLayerGroups();
 
                 tacMapInstance.on('click', function(ev) {
-                    applyTacMapPin(ev.latlng.lat, ev.latlng.lng, false);
+                    handleTacMapMapClick(ev.latlng);
                 });
 
                 tacMapInstance.on('zoomend', function() {
@@ -2216,9 +2569,13 @@
                     scheduleTacMapStateSync(appData.activeIncident.id);
                 });
             } else {
+                ensureTacMapLayerGroups();
                 setTimeout(() => tacMapInstance.invalidateSize(), 100);
                 tacMapInstance.setView(initialCenter, initialZoom);
             }
+
+            refreshTacMapBaseInputs();
+            setTacMapInteractionMode(tacMapInteractionMode === 'route-draw' ? 'route-draw' : 'default');
 
             if (isValidLatLng(Number(state.lat), Number(state.lng))) {
                 applyTacMapPin(Number(state.lat), Number(state.lng), false);
@@ -2228,6 +2585,9 @@
                 if (tacMapWarmCircle) { tacMapInstance.removeLayer(tacMapWarmCircle); tacMapWarmCircle = null; }
                 if (tacMapColdCircle) { tacMapInstance.removeLayer(tacMapColdCircle); tacMapColdCircle = null; }
             }
+
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
         }
 
         function handleTacMapUseCurrentLocation() {
@@ -2264,32 +2624,29 @@
             };
             const cfg = zoneConfig[zone];
             if (!cfg) return;
-
             const radius = Math.max(cfg.min, Number(value || cfg.defaultValue));
             const label = document.getElementById(cfg.labelId);
             if (label) label.innerText = `${radius} m`;
-
             const state = getTacMapIncidentState(appData.activeIncident.id);
             state[cfg.stateKey] = radius;
             state.updatedAt = getThTime();
             state.updatedBy = currentUser ? currentUser.name : 'system';
             upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
-            scheduleTacMapStateSync(appData.activeIncident.id);
-
             if (cfg.circleName === 'hot' && tacMapHotCircle) tacMapHotCircle.setRadius(radius);
             if (cfg.circleName === 'warm' && tacMapWarmCircle) tacMapWarmCircle.setRadius(radius);
             if (cfg.circleName === 'cold' && tacMapColdCircle) tacMapColdCircle.setRadius(radius);
-
             if (tacMapMarker && (!tacMapHotCircle || !tacMapWarmCircle || !tacMapColdCircle)) {
                 const center = tacMapMarker.getLatLng();
                 applyTacMapPin(center.lat, center.lng, false);
             }
+            scheduleTacMapStateSync(appData.activeIncident.id);
         }
 
         function handleTacMapResetPin() {
             if (!appData.activeIncident) return;
             const state = getTacMapIncidentState(appData.activeIncident.id);
-            state.lat = ''; state.lng = '';
+            state.lat = '';
+            state.lng = '';
             state.updatedAt = getThTime();
             state.updatedBy = currentUser ? currentUser.name : 'system';
             upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
@@ -2298,10 +2655,7 @@
             if (tacMapHotCircle) { tacMapInstance.removeLayer(tacMapHotCircle); tacMapHotCircle = null; }
             if (tacMapWarmCircle) { tacMapInstance.removeLayer(tacMapWarmCircle); tacMapWarmCircle = null; }
             if (tacMapColdCircle) { tacMapInstance.removeLayer(tacMapColdCircle); tacMapColdCircle = null; }
-            const latEl = document.getElementById('tacmap-lat');
-            const lngEl = document.getElementById('tacmap-lng');
-            if (latEl) latEl.value = '';
-            if (lngEl) lngEl.value = '';
+            refreshTacMapBaseInputs();
         }
 
         function handleTacMapResetRadius() {
@@ -2313,22 +2667,11 @@
             state.updatedAt = getThTime();
             state.updatedBy = currentUser ? currentUser.name : 'system';
             upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
-            scheduleTacMapStateSync(appData.activeIncident.id);
-            const hotRadiusEl = document.getElementById('tacmap-radius-hot');
-            const warmRadiusEl = document.getElementById('tacmap-radius-warm');
-            const coldRadiusEl = document.getElementById('tacmap-radius-cold');
-            const hotLabel = document.getElementById('tacmap-radius-hot-label');
-            const warmLabel = document.getElementById('tacmap-radius-warm-label');
-            const coldLabel = document.getElementById('tacmap-radius-cold-label');
-            if (hotRadiusEl) hotRadiusEl.value = 300;
-            if (warmRadiusEl) warmRadiusEl.value = 800;
-            if (coldRadiusEl) coldRadiusEl.value = 1500;
-            if (hotLabel) hotLabel.innerText = '300 m';
-            if (warmLabel) warmLabel.innerText = '800 m';
-            if (coldLabel) coldLabel.innerText = '1500 m';
             if (tacMapHotCircle) tacMapHotCircle.setRadius(300);
             if (tacMapWarmCircle) tacMapWarmCircle.setRadius(800);
             if (tacMapColdCircle) tacMapColdCircle.setRadius(1500);
+            refreshTacMapBaseInputs();
+            scheduleTacMapStateSync(appData.activeIncident.id);
         }
 
         // Safe accessor: returns value from record using multiple possible key names
@@ -2473,6 +2816,8 @@
                 warmRadius: safeGet(record, ['WarmRadius', 'warmRadius'], 800),
                 coldRadius: safeGet(record, ['ColdRadius', 'coldRadius'], 1500),
                 zoom: safeGet(record, ['Zoom', 'zoom'], 13),
+                markers: normalizeTacMapMarkers(safeGet(record, ['Markers', 'markers'], [])),
+                routes: normalizeTacMapRoutes(safeGet(record, ['Routes', 'routes'], [])),
                 updatedAt: safeGet(record, ['UpdatedAt', 'updatedAt'], ''),
                 updatedBy: safeGet(record, ['UpdatedBy', 'updatedBy'], '')
             };
@@ -3219,7 +3564,11 @@
                 zoneRecords: zoneRecords.map((z) => `${safeGet(z, ['ID', 'id'])}|${safeGet(z, ['Status', 'status'])}|${safeGet(z, ['TimeOut', 'timeOut'])}`),
                 ics: ics.map((n) => `${safeGet(n, ['IncidentID', 'incidentId'])}|${safeGet(n, ['Section', 'section'])}|${safeGet(n, ['Index', 'index'])}|${safeGet(n, ['Name', 'name'])}|${safeGet(n, ['Phone', 'phone'])}`),
                 radios: radios.map((r) => `${safeGet(r, ['ID', 'id'])}|${safeGet(r, ['Name', 'name'])}|${safeGet(r, ['Frequency', 'frequency'])}|${safeGet(r, ['Assigned', 'assigned'])}|${safeGet(r, ['Status', 'status'])}`),
-                tacmap: tacmap.map((m) => `${safeGet(m, ['IncidentID', 'incidentId', 'ID', 'id'])}|${safeGet(m, ['Lat', 'lat'])}|${safeGet(m, ['Lng', 'lng'])}|${safeGet(m, ['HotRadius', 'hotRadius'])}|${safeGet(m, ['WarmRadius', 'warmRadius'])}|${safeGet(m, ['ColdRadius', 'coldRadius'])}|${safeGet(m, ['Zoom', 'zoom'])}`),
+                tacmap: tacmap.map((m) => {
+                    const markers = normalizeTacMapMarkers(safeGet(m, ['Markers', 'markers'], []));
+                    const routes = normalizeTacMapRoutes(safeGet(m, ['Routes', 'routes'], []));
+                    return `${safeGet(m, ['IncidentID', 'incidentId', 'ID', 'id'])}|${safeGet(m, ['Lat', 'lat'])}|${safeGet(m, ['Lng', 'lng'])}|${safeGet(m, ['HotRadius', 'hotRadius'])}|${safeGet(m, ['WarmRadius', 'warmRadius'])}|${safeGet(m, ['ColdRadius', 'coldRadius'])}|${safeGet(m, ['Zoom', 'zoom'])}|${markers.map((marker) => `${marker.id}:${marker.name}:${marker.lat}:${marker.lng}`).join(',')}|${routes.map((route) => `${route.id}:${route.name}:${route.points.length}`).join(',')}`;
+                }),
                 users: userKeys
             });
         }
