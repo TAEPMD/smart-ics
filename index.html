@@ -154,6 +154,25 @@
         .mobile-nav-home.is-active .mobile-nav-home-label {
             color: #1d4ed8;
         }
+        .mobile-side-menu {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(203, 213, 225, 0.9);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.22s ease, opacity 0.22s ease;
+        }
+        .mobile-side-menu.is-open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mobile-side-menu-toggle {
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+        }
         .pull-refresh-indicator {
             transform: translate(-50%, -130%);
             opacity: 0;
@@ -185,6 +204,11 @@
         body.dark-mode .mobile-nav-main.is-active { color: #60a5fa; }
         body.dark-mode .mobile-nav-home-label { color: #94a3b8; }
         body.dark-mode .mobile-nav-home.is-active .mobile-nav-home-label { color: #93c5fd; }
+        body.dark-mode .mobile-side-menu {
+            background: rgba(15, 23, 42, 0.95);
+            border-color: rgba(71, 85, 105, 0.8);
+            box-shadow: 0 16px 30px rgba(2, 6, 23, 0.72);
+        }
         body.dark-mode .pull-refresh-indicator {
             background: rgba(15, 23, 42, 0.94);
             border-color: rgba(71, 85, 105, 0.8);
@@ -817,24 +841,26 @@
         </div>
     </main>
 
+    <div id="mobile-side-menu-backdrop" class="md:hidden fixed inset-0 z-[44] bg-slate-900/20 hidden" onclick="toggleMobileSideMenu(false)"></div>
+    <aside id="mobile-side-menu" class="mobile-side-menu md:hidden fixed left-2.5 bottom-[88px] z-[45] w-[188px] rounded-2xl p-2.5">
+        <div class="text-[10px] font-bold tracking-wide text-slate-500 px-2 pb-1.5">เมนูเสริม</div>
+        <button onclick="switchTab('logs'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all active:scale-95 w-full" data-target="logs">
+            <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+            <span>บันทึก</span>
+        </button>
+        <button id="mobile-nav-users" onclick="switchTab('users'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick hidden items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all active:scale-95 w-full mt-2" data-target="users">
+            <i data-lucide="user-cog" class="w-4 h-4"></i>
+            <span>ผู้ใช้งาน</span>
+        </button>
+    </aside>
+    <button id="mobile-side-menu-toggle" onclick="toggleMobileSideMenu()" aria-expanded="false" class="mobile-side-menu-toggle md:hidden fixed left-2.5 bottom-[88px] z-[46] bg-slate-800/95 text-white rounded-full p-2.5 border border-slate-700 active:scale-95 transition-transform">
+        <i data-lucide="panel-left-open" class="w-4 h-4"></i>
+    </button>
+
     <!-- Mobile Bottom Navigation (Tab Bar) -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 px-2.5 pb-safe">
         <div class="mobile-nav-shell rounded-[28px] overflow-hidden">
-        <div class="flex items-center gap-2 px-3 pt-2.5 overflow-x-auto no-scrollbar">
-            <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-quick flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="radio">
-                <i data-lucide="radio" class="w-4 h-4"></i>
-                <span>ข่ายวิทยุ</span>
-            </button>
-            <button onclick="switchTab('logs')" class="mobile-nav-btn mobile-nav-quick flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="logs">
-                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-                <span>บันทึก</span>
-            </button>
-            <button id="mobile-nav-users" onclick="switchTab('users')" class="mobile-nav-btn mobile-nav-quick hidden items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="users">
-                <i data-lucide="user-cog" class="w-4 h-4"></i>
-                <span>ผู้ใช้งาน</span>
-            </button>
-        </div>
-        <div class="flex justify-around items-end pt-2 pb-1.5 px-1.5">
+        <div class="flex justify-around items-end pt-2.5 pb-1.5 px-1.5 pl-12">
             <button onclick="switchTab('dashboard')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="dashboard">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">ภาพรวม</span>
@@ -870,6 +896,11 @@
             <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="tacmap">
                 <i data-lucide="map" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">TACMAP</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            </button>
+            <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="radio">
+                <i data-lucide="radio" class="w-5 h-5"></i>
+                <span class="text-[9px] font-medium">วิทยุ</span>
                 <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
         </div>
@@ -3734,6 +3765,60 @@
             mainEl.addEventListener('touchcancel', onTouchEnd, { passive: true });
         }
 
+        function initMobileSwipeInMenu() {
+            const mediaQuery = window.matchMedia('(max-width: 767px)');
+            if (!mediaQuery.matches) return;
+
+            let swipeStartX = 0;
+            let swipeStartY = 0;
+            let isSwipingFromEdge = false;
+            const edgeThreshold = 24;
+            const minSwipeDistance = 60;
+
+            const onSwipeStart = (event) => {
+                if (!event.touches || event.touches.length !== 1) return;
+                const touchX = event.touches[0].clientX;
+                const touchY = event.touches[0].clientY;
+                isSwipingFromEdge = touchX < edgeThreshold;
+                if (isSwipingFromEdge) {
+                    swipeStartX = touchX;
+                    swipeStartY = touchY;
+                }
+            };
+
+            const onSwipeMove = (event) => {
+                if (!isSwipingFromEdge || !event.touches || event.touches.length !== 1) return;
+                const touchX = event.touches[0].clientX;
+                const touchY = event.touches[0].clientY;
+                const deltaX = touchX - swipeStartX;
+                const deltaY = Math.abs(touchY - swipeStartY);
+
+                if (deltaX > 0 && deltaY < 80 && deltaX >= minSwipeDistance * 0.3) {
+                    event.preventDefault();
+                }
+            };
+
+            const onSwipeEnd = (event) => {
+                if (!isSwipingFromEdge) return;
+                if (!event.changedTouches || event.changedTouches.length === 0) return;
+
+                const touchX = event.changedTouches[0].clientX;
+                const touchY = event.changedTouches[0].clientY;
+                const deltaX = touchX - swipeStartX;
+                const deltaY = Math.abs(touchY - swipeStartY);
+
+                if (deltaX >= minSwipeDistance && deltaY < 100) {
+                    toggleMobileSideMenu(true);
+                }
+                isSwipingFromEdge = false;
+            };
+
+            document.addEventListener('touchstart', onSwipeStart, { passive: true });
+            document.addEventListener('touchmove', onSwipeMove, { passive: false });
+            document.addEventListener('touchend', onSwipeEnd, { passive: true });
+            document.addEventListener('touchcancel', onSwipeEnd, { passive: true });
+        }
+
         function buildServerDataSignature(data) {
             if (!data || typeof data !== 'object') return '';
             const incidents = data.incidents || data.Incidents || [];
@@ -4088,11 +4173,32 @@
                 if (isActive) btn.setAttribute('aria-current', 'page');
                 else btn.removeAttribute('aria-current');
             });
+            toggleMobileSideMenu(false);
             if (tabId === 'tacmap') {
                 initTacMapView();
             }
             window.scrollTo(0,0);
             updateHeaders();
+        }
+
+        function toggleMobileSideMenu(forceOpen = null) {
+            const sideMenu = document.getElementById('mobile-side-menu');
+            const sideBackdrop = document.getElementById('mobile-side-menu-backdrop');
+            const sideToggle = document.getElementById('mobile-side-menu-toggle');
+            if (!sideMenu || !sideBackdrop || !sideToggle) return;
+
+            const shouldOpen = typeof forceOpen === 'boolean'
+                ? forceOpen
+                : !sideMenu.classList.contains('is-open');
+
+            sideMenu.classList.toggle('is-open', shouldOpen);
+            sideBackdrop.classList.toggle('hidden', !shouldOpen);
+            sideToggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            const iconEl = sideToggle.querySelector('i[data-lucide]');
+            if (iconEl) {
+                iconEl.setAttribute('data-lucide', shouldOpen ? 'panel-left-close' : 'panel-left-open');
+                createIcons();
+            }
         }
 
         function updateHeaders() {
@@ -5360,6 +5466,7 @@
             loadThemeMode();
             loadTacMapState();
             initMobilePullToRefresh();
+            initMobileSwipeInMenu();
             resetSyncHealthStatus();
             loadDataFromServer(() => {
                 realtimeDataSignature = buildServerDataSignature({
