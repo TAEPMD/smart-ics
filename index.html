@@ -154,6 +154,15 @@
         .mobile-nav-home.is-active .mobile-nav-home-label {
             color: #1d4ed8;
         }
+        .pull-refresh-indicator {
+            transform: translate(-50%, -130%);
+            opacity: 0;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+        .pull-refresh-indicator.active {
+            transform: translate(-50%, 0%);
+            opacity: 1;
+        }
 
         body.dark-mode { background-color: #020617; color: #e2e8f0; }
         body.dark-mode .glass { background: rgba(15, 23, 42, 0.88); border-bottom-color: rgba(148, 163, 184, 0.25); }
@@ -176,6 +185,11 @@
         body.dark-mode .mobile-nav-main.is-active { color: #60a5fa; }
         body.dark-mode .mobile-nav-home-label { color: #94a3b8; }
         body.dark-mode .mobile-nav-home.is-active .mobile-nav-home-label { color: #93c5fd; }
+        body.dark-mode .pull-refresh-indicator {
+            background: rgba(15, 23, 42, 0.94);
+            border-color: rgba(71, 85, 105, 0.8);
+            color: #e2e8f0;
+        }
         body.dark-mode .bg-white { background-color: #0f172a !important; }
         body.dark-mode .bg-slate-50 { background-color: #111827 !important; }
         body.dark-mode .bg-slate-100 { background-color: #1f2937 !important; }
@@ -284,6 +298,10 @@
             </div>
         </div>
     </header>
+
+    <div id="mobile-pull-refresh" class="pull-refresh-indicator md:hidden fixed left-1/2 top-[58px] z-[55] bg-white border border-slate-200 rounded-full px-4 py-1.5 shadow-sm text-[11px] font-bold text-slate-600 pointer-events-none">
+        <span id="mobile-pull-refresh-text">ดึงลงเพื่อรีเฟรช</span>
+    </div>
 
     <!-- Desktop Sidebar -->
     <aside class="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col flex-shrink-0 z-20 h-screen shadow-xl relative">
@@ -400,7 +418,6 @@
                                 สถานการณ์ปัจจุบัน (Active)
                             </h3>
                             <div class="flex flex-wrap items-center justify-end gap-2">
-                                <span id="active-realtime-status" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">Cloud sync --:--</span>
                                 <div id="sync-health-home" class="hidden"></div>
                             </div>
                         </div>
@@ -803,10 +820,14 @@
     <!-- Mobile Bottom Navigation (Tab Bar) -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 px-2.5 pb-safe">
         <div class="mobile-nav-shell rounded-[28px] overflow-hidden">
-        <div class="flex items-center justify-end gap-2 px-3 pt-2.5">
+        <div class="flex items-center gap-2 px-3 pt-2.5 overflow-x-auto no-scrollbar">
             <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-quick flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="radio">
                 <i data-lucide="radio" class="w-4 h-4"></i>
                 <span>ข่ายวิทยุ</span>
+            </button>
+            <button onclick="switchTab('logs')" class="mobile-nav-btn mobile-nav-quick flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="logs">
+                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                <span>บันทึก</span>
             </button>
             <button id="mobile-nav-users" onclick="switchTab('users')" class="mobile-nav-btn mobile-nav-quick hidden items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all active:scale-95" data-target="users">
                 <i data-lucide="user-cog" class="w-4 h-4"></i>
@@ -825,6 +846,12 @@
                 <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
 
+            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="personnel">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span class="text-[9px] font-medium">ลงทะเบียน</span>
+                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            </button>
+
             <!-- Center FAB: หน้าหลัก -->
             <div class="flex flex-col items-center flex-1">
                 <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-1 active:scale-95 transition-transform" data-target="home" aria-current="page">
@@ -835,11 +862,6 @@
                 </button>
             </div>
 
-            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="personnel">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">ลงทะเบียน</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
-            </button>
             <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="zone">
                 <i data-lucide="map-pin" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">โซน</span>
@@ -848,11 +870,6 @@
             <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="tacmap">
                 <i data-lucide="map" class="w-5 h-5"></i>
                 <span class="text-[9px] font-medium">TACMAP</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
-            </button>
-            <button onclick="switchTab('logs')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="logs">
-                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">บันทึก</span>
                 <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
             </button>
         </div>
@@ -3612,14 +3629,109 @@
         }
 
         function renderRealtimePulseStatus() {
-            const label = `Cloud sync ${realtimeLastSyncAt}`;
-            const homeStatus = document.getElementById('active-realtime-status');
-            const dashStatus = document.getElementById('dash-realtime-status');
-            if (homeStatus) homeStatus.innerText = label;
-            if (dashStatus) dashStatus.innerText = label;
             if (getConfiguredBackendMode() === 'firebase' && realtimeLastSyncAt !== '--:--') {
                 setSyncHealthStatus('firebase', 'live', 'รับส่งข้อมูลผ่าน Firebase แบบ real-time', realtimeLastSyncAt);
             }
+        }
+
+        function initMobilePullToRefresh() {
+            const mediaQuery = window.matchMedia('(max-width: 767px)');
+            if (!mediaQuery.matches) return;
+
+            const mainEl = document.querySelector('main');
+            const indicator = document.getElementById('mobile-pull-refresh');
+            const indicatorText = document.getElementById('mobile-pull-refresh-text');
+            if (!mainEl || !indicator || !indicatorText) return;
+
+            let startY = 0;
+            let distance = 0;
+            let isPulling = false;
+            let isRefreshing = false;
+            const triggerDistance = 74;
+
+            const resetPullVisual = () => {
+                mainEl.style.transition = 'transform 0.18s ease';
+                mainEl.style.transform = '';
+                indicator.classList.remove('active');
+                indicatorText.textContent = 'ดึงลงเพื่อรีเฟรช';
+                setTimeout(() => {
+                    mainEl.style.transition = '';
+                }, 220);
+            };
+
+            const refreshFromGesture = () => {
+                if (isRefreshing) return;
+                isRefreshing = true;
+                mainEl.style.transition = 'transform 0.18s ease';
+                mainEl.style.transform = 'translateY(38px)';
+                indicator.classList.add('active');
+                indicatorText.textContent = 'กำลังรีเฟรช...';
+
+                const tab = localStorage.getItem('smart_ics_tab') || 'home';
+                const preferredIncidentId = appData.activeIncident ? appData.activeIncident.id : '';
+
+                invokeBackendMethod('getInitialData', [])
+                    .then((data) => {
+                        processServerData(data);
+                        if (preferredIncidentId) setSelectedIncident(preferredIncidentId);
+                        realtimeDataSignature = buildServerDataSignature(data);
+                        realtimeLastSyncAt = getThTime();
+                        renderRealtimePulseStatus();
+                        if (currentUser) {
+                            renderCurrentTabAfterRealtimeSync(tab);
+                            switchTab(tab);
+                        }
+                    })
+                    .catch((err) => {
+                        console.warn('[Smart ICS] pull refresh failed:', err);
+                        showGlobalError('PULL_REFRESH', 'รีเฟรชข้อมูลไม่สำเร็จ: ' + (err && err.message ? err.message : err), () => refreshFromGesture());
+                    })
+                    .finally(() => {
+                        isRefreshing = false;
+                        resetPullVisual();
+                    });
+            };
+
+            const onTouchStart = (event) => {
+                if (isRefreshing) return;
+                if (mainEl.scrollTop > 0) return;
+                if (!event.touches || event.touches.length !== 1) return;
+                startY = event.touches[0].clientY;
+                distance = 0;
+                isPulling = true;
+            };
+
+            const onTouchMove = (event) => {
+                if (!isPulling || isRefreshing) return;
+                const currentY = event.touches && event.touches[0] ? event.touches[0].clientY : startY;
+                const delta = currentY - startY;
+                if (delta <= 0) {
+                    distance = 0;
+                    return;
+                }
+
+                distance = Math.min(120, delta * 0.58);
+                event.preventDefault();
+                mainEl.style.transform = `translateY(${distance}px)`;
+                indicator.classList.add('active');
+                indicatorText.textContent = distance >= triggerDistance ? 'ปล่อยเพื่อรีเฟรช' : 'ดึงลงเพื่อรีเฟรช';
+            };
+
+            const onTouchEnd = () => {
+                if (!isPulling || isRefreshing) return;
+                isPulling = false;
+
+                if (distance >= triggerDistance) {
+                    refreshFromGesture();
+                } else {
+                    resetPullVisual();
+                }
+            };
+
+            mainEl.addEventListener('touchstart', onTouchStart, { passive: true });
+            mainEl.addEventListener('touchmove', onTouchMove, { passive: false });
+            mainEl.addEventListener('touchend', onTouchEnd, { passive: true });
+            mainEl.addEventListener('touchcancel', onTouchEnd, { passive: true });
         }
 
         function buildServerDataSignature(data) {
@@ -5247,6 +5359,7 @@
             ensureGoogleScriptRunBridge();
             loadThemeMode();
             loadTacMapState();
+            initMobilePullToRefresh();
             resetSyncHealthStatus();
             loadDataFromServer(() => {
                 realtimeDataSignature = buildServerDataSignature({
