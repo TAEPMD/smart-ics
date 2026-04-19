@@ -151,24 +151,39 @@
         .mobile-nav-home.is-active .mobile-nav-home-label {
             color: #1d4ed8;
         }
-        .mobile-side-menu {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(203, 213, 225, 0.9);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            transform: translateX(-120%);
-            opacity: 0;
-            pointer-events: none;
-            transition: transform 0.22s ease, opacity 0.22s ease;
+        .mobile-nav-drawer {
+            background: #fff;
+            width: 280px;
+            max-width: 80vw;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 32px rgba(15, 23, 42, 0.18);
         }
-        .mobile-side-menu.is-open {
+        .mobile-nav-drawer.is-open {
             transform: translateX(0);
-            opacity: 1;
+        }
+        .mobile-nav-drawer-backdrop {
+            background: rgba(15, 23, 42, 0);
+            transition: background 0.28s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-drawer-backdrop.is-open {
+            background: rgba(15, 23, 42, 0.45);
             pointer-events: auto;
         }
+        .drawer-nav-item {
+            color: #475569;
+            border-radius: 12px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .drawer-nav-item:active { background: #f1f5f9; }
+        .drawer-nav-item.is-active {
+            background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+            color: #1d4ed8;
+        }
+        .drawer-nav-item.is-active .drawer-nav-icon { color: #2563eb; }
         .mobile-side-menu-toggle {
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
         }
         .pull-refresh-indicator {
             transform: translate(-50%, -130%);
@@ -201,11 +216,22 @@
         body.dark-mode .mobile-nav-main.is-active { color: #60a5fa; }
         body.dark-mode .mobile-nav-home-label { color: #94a3b8; }
         body.dark-mode .mobile-nav-home.is-active .mobile-nav-home-label { color: #93c5fd; }
-        body.dark-mode .mobile-side-menu {
-            background: rgba(15, 23, 42, 0.95);
-            border-color: rgba(71, 85, 105, 0.8);
-            box-shadow: 0 16px 30px rgba(2, 6, 23, 0.72);
+        body.dark-mode .mobile-nav-drawer {
+            background: #0f172a;
+            box-shadow: 4px 0 32px rgba(2, 6, 23, 0.7);
         }
+        body.dark-mode .mobile-nav-drawer .border-slate-100 { border-color: #1e293b !important; }
+        body.dark-mode .mobile-nav-drawer .bg-slate-50 { background: #1e293b !important; }
+        body.dark-mode .mobile-nav-drawer .text-slate-800 { color: #f1f5f9 !important; }
+        body.dark-mode .mobile-nav-drawer .text-slate-400 { color: #64748b !important; }
+        body.dark-mode .mobile-nav-drawer .text-slate-500 { color: #94a3b8 !important; }
+        body.dark-mode .drawer-nav-item { color: #94a3b8; }
+        body.dark-mode .drawer-nav-item:active { background: #1e293b; }
+        body.dark-mode .drawer-nav-item.is-active {
+            background: linear-gradient(135deg, rgba(30,64,175,0.3) 0%, rgba(67,56,202,0.3) 100%);
+            color: #93c5fd;
+        }
+        body.dark-mode .drawer-nav-item.is-active .drawer-nav-icon { color: #60a5fa; }
         body.dark-mode .pull-refresh-indicator {
             background: rgba(15, 23, 42, 0.94);
             border-color: rgba(71, 85, 105, 0.8);
@@ -838,31 +864,88 @@
         </div>
     </main>
 
-    <div id="mobile-side-menu-backdrop" class="md:hidden fixed inset-0 z-[44] bg-slate-900/20 hidden" onclick="toggleMobileSideMenu(false)"></div>
-    <aside id="mobile-side-menu" class="mobile-side-menu md:hidden fixed left-2.5 bottom-[84px] z-[45] w-[192px] rounded-2xl overflow-hidden">
-        <div class="px-3 pt-3 pb-1">
-            <p class="text-[10px] font-bold tracking-wider text-slate-400 uppercase px-1 mb-2">เมนูเพิ่มเติม</p>
-            <button onclick="switchTab('dashboard'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 w-full" data-target="dashboard">
-                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i>
-                <span>ภาพรวม</span>
-            </button>
-            <button onclick="switchTab('radio'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 w-full mt-1.5" data-target="radio">
-                <i data-lucide="radio" class="w-4 h-4 flex-shrink-0"></i>
-                <span>ข่ายวิทยุ</span>
-            </button>
-            <button onclick="switchTab('logs'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 w-full mt-1.5" data-target="logs">
-                <i data-lucide="clipboard-list" class="w-4 h-4 flex-shrink-0"></i>
-                <span>บันทึก</span>
-            </button>
-            <button id="mobile-nav-users" onclick="switchTab('users'); toggleMobileSideMenu(false);" class="mobile-nav-btn mobile-nav-quick hidden items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 w-full mt-1.5" data-target="users">
-                <i data-lucide="user-cog" class="w-4 h-4 flex-shrink-0"></i>
-                <span>ผู้ใช้งาน</span>
+    <div id="mobile-side-menu-backdrop" class="mobile-nav-drawer-backdrop md:hidden fixed inset-0 z-[54]" onclick="toggleMobileSideMenu(false)"></div>
+    <aside id="mobile-side-menu" class="mobile-nav-drawer md:hidden fixed left-0 top-0 bottom-0 z-[55] flex flex-col overflow-hidden">
+
+        <!-- Drawer Header -->
+        <div class="flex items-center justify-between px-5 pt-12 pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl text-white shadow-sm">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <p class="font-black text-slate-800 text-sm leading-none">Smart ICS</p>
+                    <p class="text-[10px] text-blue-500 font-bold mt-0.5">NIEM Rescue System</p>
+                </div>
+            </div>
+            <button onclick="toggleMobileSideMenu(false)" class="p-1.5 rounded-full bg-slate-100 text-slate-500 active:bg-slate-200 transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
             </button>
         </div>
-        <div class="h-3"></div>
+
+        <!-- User Info -->
+        <div class="mx-4 mt-4 mb-1 bg-slate-50 rounded-2xl px-4 py-3 flex items-center gap-3 border border-slate-100">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0" id="drawer-avatar">U</div>
+            <div class="overflow-hidden">
+                <p class="text-sm font-bold text-slate-800 leading-none truncate" id="drawer-username">ผู้ใช้งาน</p>
+                <p class="text-[11px] text-blue-500 font-semibold mt-0.5 truncate" id="drawer-role">Role</p>
+            </div>
+        </div>
+
+        <!-- Nav Items -->
+        <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase px-3 pb-2 pt-1">เมนูหลัก</p>
+            <button onclick="switchTab('home'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="home">
+                <i data-lucide="home" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">หน้าหลัก</span>
+            </button>
+            <button onclick="switchTab('dashboard'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="dashboard">
+                <i data-lucide="layout-dashboard" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ภาพรวมเหตุการณ์</span>
+            </button>
+            <button onclick="switchTab('ics'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="ics">
+                <i data-lucide="network" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ผังบัญชาการ (ICS)</span>
+            </button>
+            <button onclick="switchTab('personnel'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="personnel">
+                <i data-lucide="users" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ลงทะเบียนเข้าพื้นที่</span>
+            </button>
+            <button onclick="switchTab('zone'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="zone">
+                <i data-lucide="map-pin" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ควบคุมโซน</span>
+            </button>
+            <button onclick="switchTab('tacmap'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="tacmap">
+                <i data-lucide="map" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">แผนที่ปฏิบัติการ (TACMAP)</span>
+            </button>
+
+            <div class="border-t border-slate-100 my-2"></div>
+            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase px-3 pb-2 pt-1">เมนูเพิ่มเติม</p>
+            <button onclick="switchTab('radio'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="radio">
+                <i data-lucide="radio" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ข่ายวิทยุ (Comms)</span>
+            </button>
+            <button onclick="switchTab('logs'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="logs">
+                <i data-lucide="clipboard-list" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">บันทึกเหตุการณ์</span>
+            </button>
+            <button id="mobile-nav-users" onclick="switchTab('users'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item hidden items-center gap-3 w-full px-3 py-3" data-target="users">
+                <i data-lucide="user-cog" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-sm font-semibold">ผู้ใช้งาน (Users)</span>
+            </button>
+        </nav>
+
+        <!-- Logout -->
+        <div class="px-4 pb-8 pt-2 border-t border-slate-100">
+            <button onclick="handleLogout(); toggleMobileSideMenu(false);" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-500 transition-colors text-sm font-semibold active:scale-95">
+                <i data-lucide="log-out" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span>ล็อกหน้าจอ / ออกจากระบบ</span>
+            </button>
+        </div>
     </aside>
     <button id="mobile-side-menu-toggle" onclick="toggleMobileSideMenu()" aria-expanded="false" class="mobile-side-menu-toggle md:hidden fixed left-2 bottom-[22px] z-[46] bg-slate-800/95 text-white rounded-full w-9 h-9 flex items-center justify-center border border-slate-700/80 active:scale-95 transition-transform">
-        <i data-lucide="panel-left-open" class="w-4 h-4"></i>
+        <i data-lucide="menu" class="w-4 h-4"></i>
     </button>
 
     <!-- Mobile Bottom Navigation (Tab Bar) -->
@@ -4197,11 +4280,27 @@
                 : !sideMenu.classList.contains('is-open');
 
             sideMenu.classList.toggle('is-open', shouldOpen);
-            sideBackdrop.classList.toggle('hidden', !shouldOpen);
+            sideBackdrop.classList.toggle('is-open', shouldOpen);
             sideToggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+
+            if (shouldOpen && currentUser) {
+                const drawerAvatar = document.getElementById('drawer-avatar');
+                const drawerUsername = document.getElementById('drawer-username');
+                const drawerRole = document.getElementById('drawer-role');
+                if (drawerAvatar) drawerAvatar.textContent = currentUser.initial || currentUser.name.charAt(0);
+                if (drawerUsername) drawerUsername.textContent = currentUser.name;
+                if (drawerRole) drawerRole.textContent = getDisplayRole(currentUser.role) + (currentUser.agency ? ' | ' + currentUser.agency : '');
+            }
+
+            const tab = localStorage.getItem('smart_ics_tab') || 'home';
+            document.querySelectorAll('.drawer-nav-item').forEach(btn => {
+                const isActive = btn.dataset.target === tab;
+                btn.classList.toggle('is-active', isActive);
+            });
+
             const iconEl = sideToggle.querySelector('i[data-lucide]');
             if (iconEl) {
-                iconEl.setAttribute('data-lucide', shouldOpen ? 'panel-left-close' : 'panel-left-open');
+                iconEl.setAttribute('data-lucide', shouldOpen ? 'x' : 'menu');
                 createIcons();
             }
         }
@@ -4805,10 +4904,10 @@
             if(mobileNavUsers) {
                 if(hasPermission('MANAGE_USERS')) {
                     mobileNavUsers.classList.remove('hidden');
-                    mobileNavUsers.classList.add('inline-flex');
+                    mobileNavUsers.classList.add('flex');
                 } else {
                     mobileNavUsers.classList.add('hidden');
-                    mobileNavUsers.classList.remove('inline-flex');
+                    mobileNavUsers.classList.remove('flex');
                 }
             }
 
