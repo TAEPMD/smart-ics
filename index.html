@@ -103,87 +103,101 @@
         @keyframes btnSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .mobile-nav-shell {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.96) 100%);
-            border: 1px solid rgba(148, 163, 184, 0.28);
-            box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.08);
+            background: rgba(255, 255, 255, 0.97);
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+            box-shadow: 0 -4px 28px rgba(15, 23, 42, 0.08);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
         }
-        .mobile-nav-quick {
-            background: rgba(241, 245, 249, 0.9);
-            color: #475569;
-            border: 1px solid rgba(203, 213, 225, 0.85);
-        }
-        .mobile-nav-quick.is-active {
-            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
-            color: #1d4ed8;
-            border-color: rgba(96, 165, 250, 0.55);
-        }
-        .mobile-nav-main {
+        .mobile-nav-tab {
             color: #94a3b8;
+            -webkit-tap-highlight-color: transparent;
+            transition: color 0.2s ease;
         }
-        .mobile-nav-main .mobile-nav-main-dot {
-            transform: scaleX(0.4);
-            opacity: 0;
-            transform-origin: center;
-            transition: all 0.2s ease;
+        .mobile-nav-tab .nav-tab-pill {
+            border-radius: 16px;
+            padding: 5px 12px 4px;
+            background: transparent;
+            transition: background 0.2s ease;
+            min-width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
         }
-        .mobile-nav-main.is-active {
-            color: #2563eb;
+        .mobile-nav-tab.is-active,
+        #mobile-side-menu-toggle[aria-expanded="true"] {
+            color: #1d4ed8;
         }
-        .mobile-nav-main.is-active .mobile-nav-main-dot {
-            transform: scaleX(1);
-            opacity: 1;
+        .mobile-nav-tab.is-active .nav-tab-pill,
+        #mobile-side-menu-toggle[aria-expanded="true"] .nav-tab-pill {
+            background: #dbeafe;
         }
+        .mobile-nav-tab.is-active span { font-weight: 700; }
         .mobile-nav-home-orb {
             background: linear-gradient(145deg, #3b82f6 0%, #4f46e5 100%);
-            border: 2px solid rgba(255, 255, 255, 0.95);
-            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 3px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.42), 0 2px 8px rgba(79, 70, 229, 0.22);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
         }
         .mobile-nav-home.is-active .mobile-nav-home-orb {
-            transform: translateY(-1px) scale(1.04);
-            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.42);
+            transform: translateY(-3px) scale(1.08);
+            box-shadow: 0 14px 32px rgba(37, 99, 235, 0.52), 0 4px 12px rgba(79, 70, 229, 0.32);
         }
         .mobile-nav-home-label {
             color: #64748b;
+            transition: color 0.2s ease;
         }
         .mobile-nav-home.is-active .mobile-nav-home-label {
             color: #1d4ed8;
+            font-weight: 700;
         }
         .mobile-nav-drawer {
             background: #fff;
-            width: 280px;
-            max-width: 80vw;
+            width: 300px;
+            max-width: 85vw;
             transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 32px rgba(15, 23, 42, 0.18);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 8px 0 48px rgba(15, 23, 42, 0.15);
         }
         .mobile-nav-drawer.is-open {
             transform: translateX(0);
         }
         .mobile-nav-drawer-backdrop {
             background: rgba(15, 23, 42, 0);
-            transition: background 0.28s ease;
+            transition: background 0.3s ease;
             pointer-events: none;
         }
         .mobile-nav-drawer-backdrop.is-open {
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(15, 23, 42, 0.55);
             pointer-events: auto;
         }
+        .drawer-header {
+            background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+        }
         .drawer-nav-item {
-            color: #475569;
+            color: #374151;
             border-radius: 12px;
             transition: background 0.15s ease, color 0.15s ease;
         }
-        .drawer-nav-item:active { background: #f1f5f9; }
+        .drawer-nav-item:active { background: #f1f5f9; transform: scale(0.98); }
         .drawer-nav-item.is-active {
             background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
             color: #1d4ed8;
+            font-weight: 700;
         }
-        .drawer-nav-item.is-active .drawer-nav-icon { color: #2563eb; }
-        .mobile-side-menu-toggle {
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+        .drawer-nav-item.is-active .drawer-icon-chip {
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.22);
+        }
+        .drawer-icon-chip {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: box-shadow 0.15s ease;
         }
         .pull-refresh-indicator {
             transform: translate(-50%, -130%);
@@ -198,40 +212,53 @@
         body.dark-mode { background-color: #020617; color: #e2e8f0; }
         body.dark-mode .glass { background: rgba(15, 23, 42, 0.88); border-bottom-color: rgba(148, 163, 184, 0.25); }
         body.dark-mode .mobile-nav-shell {
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.97) 100%);
-            border-color: rgba(71, 85, 105, 0.7);
-            box-shadow: 0 -8px 26px rgba(2, 6, 23, 0.75);
+            background: rgba(15, 23, 42, 0.97);
+            border-top-color: rgba(71, 85, 105, 0.35);
+            box-shadow: 0 -4px 24px rgba(2, 6, 23, 0.55);
         }
-        body.dark-mode .mobile-nav-quick {
-            background: rgba(15, 23, 42, 0.9);
-            color: #cbd5e1;
-            border-color: rgba(71, 85, 105, 0.8);
-        }
-        body.dark-mode .mobile-nav-quick.is-active {
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.4) 0%, rgba(67, 56, 202, 0.4) 100%);
-            color: #bfdbfe;
-            border-color: rgba(96, 165, 250, 0.5);
-        }
-        body.dark-mode .mobile-nav-main { color: #94a3b8; }
-        body.dark-mode .mobile-nav-main.is-active { color: #60a5fa; }
+        body.dark-mode .mobile-nav-tab { color: #475569; }
+        body.dark-mode .mobile-nav-tab.is-active,
+        body.dark-mode #mobile-side-menu-toggle[aria-expanded="true"] { color: #60a5fa; }
+        body.dark-mode .mobile-nav-tab.is-active .nav-tab-pill,
+        body.dark-mode #mobile-side-menu-toggle[aria-expanded="true"] .nav-tab-pill { background: rgba(30, 64, 175, 0.32); }
         body.dark-mode .mobile-nav-home-label { color: #94a3b8; }
         body.dark-mode .mobile-nav-home.is-active .mobile-nav-home-label { color: #93c5fd; }
         body.dark-mode .mobile-nav-drawer {
             background: #0f172a;
-            box-shadow: 4px 0 32px rgba(2, 6, 23, 0.7);
+            box-shadow: 8px 0 48px rgba(2, 6, 23, 0.7);
         }
+        body.dark-mode .drawer-header { background: linear-gradient(135deg, #1e3a5f 0%, #312e81 100%); }
         body.dark-mode .mobile-nav-drawer .border-slate-100 { border-color: #1e293b !important; }
-        body.dark-mode .mobile-nav-drawer .bg-slate-50 { background: #1e293b !important; }
-        body.dark-mode .mobile-nav-drawer .text-slate-800 { color: #f1f5f9 !important; }
-        body.dark-mode .mobile-nav-drawer .text-slate-400 { color: #64748b !important; }
-        body.dark-mode .mobile-nav-drawer .text-slate-500 { color: #94a3b8 !important; }
         body.dark-mode .drawer-nav-item { color: #94a3b8; }
-        body.dark-mode .drawer-nav-item:active { background: #1e293b; }
+        body.dark-mode .drawer-nav-item:active { background: #1e293b; transform: scale(0.98); }
         body.dark-mode .drawer-nav-item.is-active {
             background: linear-gradient(135deg, rgba(30,64,175,0.3) 0%, rgba(67,56,202,0.3) 100%);
             color: #93c5fd;
         }
-        body.dark-mode .drawer-nav-item.is-active .drawer-nav-icon { color: #60a5fa; }
+        body.dark-mode .mobile-nav-drawer .text-slate-800 { color: #f1f5f9 !important; }
+        body.dark-mode .mobile-nav-drawer .text-slate-600,
+        body.dark-mode .mobile-nav-drawer .text-slate-500 { color: #94a3b8 !important; }
+        body.dark-mode .mobile-nav-drawer .text-slate-400 { color: #475569 !important; }
+        body.dark-mode .mobile-nav-drawer .bg-blue-50   { background: rgba(37,99,235,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-violet-50 { background: rgba(109,40,217,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-orange-50 { background: rgba(194,65,12,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-teal-50   { background: rgba(15,118,110,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-emerald-50{ background: rgba(6,95,70,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-sky-50    { background: rgba(3,105,161,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-amber-50  { background: rgba(146,64,14,0.2) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-slate-100 { background: rgba(71,85,105,0.25) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-purple-50 { background: rgba(88,28,135,0.22) !important; }
+        body.dark-mode .mobile-nav-drawer .bg-red-50,
+        body.dark-mode .mobile-nav-drawer .bg-red-100   { background: rgba(153,27,27,0.25) !important; }
+        body.dark-mode .mobile-nav-drawer .text-blue-600   { color: #60a5fa !important; }
+        body.dark-mode .mobile-nav-drawer .text-violet-600 { color: #a78bfa !important; }
+        body.dark-mode .mobile-nav-drawer .text-orange-600 { color: #fb923c !important; }
+        body.dark-mode .mobile-nav-drawer .text-teal-600   { color: #2dd4bf !important; }
+        body.dark-mode .mobile-nav-drawer .text-emerald-600{ color: #34d399 !important; }
+        body.dark-mode .mobile-nav-drawer .text-sky-600    { color: #38bdf8 !important; }
+        body.dark-mode .mobile-nav-drawer .text-amber-600  { color: #fbbf24 !important; }
+        body.dark-mode .mobile-nav-drawer .text-purple-600 { color: #c084fc !important; }
+        body.dark-mode .mobile-nav-drawer .text-red-500    { color: #f87171 !important; }
         body.dark-mode .pull-refresh-indicator {
             background: rgba(15, 23, 42, 0.94);
             border-color: rgba(71, 85, 105, 0.8);
@@ -867,128 +894,132 @@
     <div id="mobile-side-menu-backdrop" class="mobile-nav-drawer-backdrop md:hidden fixed inset-0 z-[54]" onclick="toggleMobileSideMenu(false)"></div>
     <aside id="mobile-side-menu" class="mobile-nav-drawer md:hidden fixed left-0 top-0 bottom-0 z-[55] flex flex-col overflow-hidden">
 
-        <!-- Drawer Header -->
-        <div class="flex items-center justify-between px-5 pt-12 pb-4 border-b border-slate-100">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-xl text-white shadow-sm">
-                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        <!-- Drawer Header: gradient banner + user card -->
+        <div class="drawer-header px-5 pt-12 pb-5 flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 p-2.5 rounded-xl">
+                        <i data-lucide="shield-alert" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-white text-base leading-tight">Smart ICS</p>
+                        <p class="text-[11px] text-blue-200 font-medium mt-0.5">NIEM Rescue System</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="font-black text-slate-800 text-sm leading-none">Smart ICS</p>
-                    <p class="text-[10px] text-blue-500 font-bold mt-0.5">NIEM Rescue System</p>
-                </div>
+                <button onclick="toggleMobileSideMenu(false)" class="p-2 rounded-full bg-white/15 text-white active:bg-white/30 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
-            <button onclick="toggleMobileSideMenu(false)" class="p-1.5 rounded-full bg-slate-100 text-slate-500 active:bg-slate-200 transition-colors">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
+            <!-- User card inside header -->
+            <div class="mt-4 bg-white/15 rounded-2xl px-4 py-3 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white/25 flex items-center justify-center text-white font-black text-base flex-shrink-0 ring-2 ring-white/30" id="drawer-avatar">U</div>
+                <div class="overflow-hidden flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white leading-none truncate" id="drawer-username">ผู้ใช้งาน</p>
+                    <p class="text-[11px] text-blue-100 font-medium mt-0.5 truncate" id="drawer-role">Role</p>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0 ring-2 ring-emerald-300/40" title="ออนไลน์"></div>
+            </div>
         </div>
 
-        <!-- User Info -->
-        <div class="mx-4 mt-4 mb-1 bg-slate-50 rounded-2xl px-4 py-3 flex items-center gap-3 border border-slate-100">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-black flex-shrink-0" id="drawer-avatar">U</div>
-            <div class="overflow-hidden">
-                <p class="text-sm font-bold text-slate-800 leading-none truncate" id="drawer-username">ผู้ใช้งาน</p>
-                <p class="text-[11px] text-blue-500 font-semibold mt-0.5 truncate" id="drawer-role">Role</p>
-            </div>
-        </div>
-
-        <!-- Nav Items -->
-        <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase px-3 pb-2 pt-1">เมนูหลัก</p>
-            <button onclick="switchTab('home'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="home">
-                <i data-lucide="home" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">หน้าหลัก</span>
+        <!-- Nav Items (scrollable) -->
+        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+            <p class="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase px-3 pb-2">เมนูหลัก</p>
+            <button onclick="switchTab('home'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="home">
+                <div class="drawer-icon-chip bg-blue-50"><i data-lucide="home" class="w-[18px] h-[18px] text-blue-600"></i></div>
+                <span class="text-sm">หน้าหลัก</span>
             </button>
-            <button onclick="switchTab('dashboard'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="dashboard">
-                <i data-lucide="layout-dashboard" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ภาพรวมเหตุการณ์</span>
+            <button onclick="switchTab('dashboard'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="dashboard">
+                <div class="drawer-icon-chip bg-violet-50"><i data-lucide="layout-dashboard" class="w-[18px] h-[18px] text-violet-600"></i></div>
+                <span class="text-sm">ภาพรวมเหตุการณ์</span>
             </button>
-            <button onclick="switchTab('ics'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="ics">
-                <i data-lucide="network" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ผังบัญชาการ (ICS)</span>
+            <button onclick="switchTab('ics'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="ics">
+                <div class="drawer-icon-chip bg-orange-50"><i data-lucide="network" class="w-[18px] h-[18px] text-orange-600"></i></div>
+                <span class="text-sm">ผังบัญชาการ (ICS)</span>
             </button>
-            <button onclick="switchTab('personnel'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="personnel">
-                <i data-lucide="users" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ลงทะเบียนเข้าพื้นที่</span>
+            <button onclick="switchTab('personnel'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="personnel">
+                <div class="drawer-icon-chip bg-teal-50"><i data-lucide="users" class="w-[18px] h-[18px] text-teal-600"></i></div>
+                <span class="text-sm">ลงทะเบียนเข้าพื้นที่</span>
             </button>
-            <button onclick="switchTab('zone'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="zone">
-                <i data-lucide="map-pin" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ควบคุมโซน</span>
+            <button onclick="switchTab('zone'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="zone">
+                <div class="drawer-icon-chip bg-emerald-50"><i data-lucide="map-pin" class="w-[18px] h-[18px] text-emerald-600"></i></div>
+                <span class="text-sm">ควบคุมโซน</span>
             </button>
-            <button onclick="switchTab('tacmap'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="tacmap">
-                <i data-lucide="map" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">แผนที่ปฏิบัติการ (TACMAP)</span>
+            <button onclick="switchTab('tacmap'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="tacmap">
+                <div class="drawer-icon-chip bg-sky-50"><i data-lucide="map" class="w-[18px] h-[18px] text-sky-600"></i></div>
+                <span class="text-sm">แผนที่ปฏิบัติการ (TACMAP)</span>
             </button>
 
-            <div class="border-t border-slate-100 my-2"></div>
-            <p class="text-[10px] font-bold tracking-widest text-slate-400 uppercase px-3 pb-2 pt-1">เมนูเพิ่มเติม</p>
-            <button onclick="switchTab('radio'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="radio">
-                <i data-lucide="radio" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ข่ายวิทยุ (Comms)</span>
+            <div class="border-t border-slate-100 my-3"></div>
+            <p class="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase px-3 pb-2">เมนูเพิ่มเติม</p>
+            <button onclick="switchTab('radio'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="radio">
+                <div class="drawer-icon-chip bg-amber-50"><i data-lucide="radio" class="w-[18px] h-[18px] text-amber-600"></i></div>
+                <span class="text-sm">ข่ายวิทยุ (Comms)</span>
             </button>
-            <button onclick="switchTab('logs'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-3" data-target="logs">
-                <i data-lucide="clipboard-list" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">บันทึกเหตุการณ์</span>
+            <button onclick="switchTab('logs'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item flex items-center gap-3 w-full px-3 py-2.5" data-target="logs">
+                <div class="drawer-icon-chip bg-slate-100"><i data-lucide="clipboard-list" class="w-[18px] h-[18px] text-slate-500"></i></div>
+                <span class="text-sm">บันทึกเหตุการณ์</span>
             </button>
-            <button id="mobile-nav-users" onclick="switchTab('users'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item hidden items-center gap-3 w-full px-3 py-3" data-target="users">
-                <i data-lucide="user-cog" class="drawer-nav-icon w-[18px] h-[18px] flex-shrink-0"></i>
-                <span class="text-sm font-semibold">ผู้ใช้งาน (Users)</span>
+            <button id="mobile-nav-users" onclick="switchTab('users'); toggleMobileSideMenu(false);" class="mobile-nav-btn drawer-nav-item hidden items-center gap-3 w-full px-3 py-2.5" data-target="users">
+                <div class="drawer-icon-chip bg-purple-50"><i data-lucide="user-cog" class="w-[18px] h-[18px] text-purple-600"></i></div>
+                <span class="text-sm">ผู้ใช้งาน (Users)</span>
             </button>
         </nav>
 
         <!-- Logout -->
-        <div class="px-4 pb-8 pt-2 border-t border-slate-100">
-            <button onclick="handleLogout(); toggleMobileSideMenu(false);" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:bg-red-50 hover:text-red-500 transition-colors text-sm font-semibold active:scale-95">
-                <i data-lucide="log-out" class="w-[18px] h-[18px] flex-shrink-0"></i>
-                <span>ล็อกหน้าจอ / ออกจากระบบ</span>
+        <div class="px-4 pb-10 pt-3 border-t border-slate-100 flex-shrink-0">
+            <button onclick="handleLogout(); toggleMobileSideMenu(false);" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-50 text-red-500 active:bg-red-100 transition-colors active:scale-[0.98] transform text-sm font-semibold">
+                <div class="drawer-icon-chip bg-red-100"><i data-lucide="log-out" class="w-[18px] h-[18px] text-red-500"></i></div>
+                <span>ออกจากระบบ</span>
             </button>
         </div>
     </aside>
-    <button id="mobile-side-menu-toggle" onclick="toggleMobileSideMenu()" aria-expanded="false" class="mobile-side-menu-toggle md:hidden fixed left-2 bottom-[22px] z-[46] bg-slate-800/95 text-white rounded-full w-9 h-9 flex items-center justify-center border border-slate-700/80 active:scale-95 transition-transform">
-        <i data-lucide="menu" class="w-4 h-4"></i>
-    </button>
 
-    <!-- Mobile Bottom Navigation (Tab Bar) -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 px-3 pb-safe">
-        <div class="mobile-nav-shell rounded-[26px] overflow-visible">
-        <div class="flex items-end justify-around pt-2 pb-2 px-2">
+    <!-- Mobile Bottom Navigation (Tab Bar) — hamburger integrated as first tab -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 pb-safe">
+        <div class="mobile-nav-shell overflow-visible">
+        <div class="flex items-end justify-around pt-1 pb-2 px-1">
 
-            <!-- ผังฯ -->
-            <button onclick="switchTab('ics')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-[3px] flex-1 px-1 py-1 transition-colors min-w-0" data-target="ics">
-                <i data-lucide="network" class="w-[19px] h-[19px] flex-shrink-0"></i>
-                <span class="text-[9px] font-medium leading-none">ผังฯ</span>
-                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500 mt-[1px]"></span>
+            <!-- ☰ เมนู (Hamburger – integrated tab) -->
+            <button id="mobile-side-menu-toggle" onclick="toggleMobileSideMenu()" aria-expanded="false"
+                class="mobile-nav-tab flex flex-col items-center flex-1 pt-2 pb-1 px-1 min-w-0 active:scale-95 transition-transform">
+                <div class="nav-tab-pill flex flex-col items-center gap-[3px]">
+                    <i data-lucide="menu" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="text-[10px] font-medium leading-none">เมนู</span>
+                </div>
             </button>
 
-            <!-- ลงทะเบียน -->
-            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-[3px] flex-1 px-1 py-1 transition-colors min-w-0" data-target="personnel">
-                <i data-lucide="users" class="w-[19px] h-[19px] flex-shrink-0"></i>
-                <span class="text-[9px] font-medium leading-none">ลงทะเบียน</span>
-                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500 mt-[1px]"></span>
+            <!-- ผังฯ ICS -->
+            <button onclick="switchTab('ics')" class="mobile-nav-btn mobile-nav-tab flex flex-col items-center flex-1 pt-2 pb-1 px-1 min-w-0 active:scale-95 transition-transform" data-target="ics">
+                <div class="nav-tab-pill flex flex-col items-center gap-[3px]">
+                    <i data-lucide="network" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="text-[10px] font-medium leading-none">ผังฯ</span>
+                </div>
             </button>
 
-            <!-- Center FAB: หน้าหลัก -->
+            <!-- หน้าหลัก FAB (center, elevated) -->
             <div class="flex flex-col items-center justify-end flex-1 min-w-0 -mt-5">
-                <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-[3px] active:scale-95 transition-transform" data-target="home" aria-current="page">
-                    <div class="mobile-nav-home-orb rounded-full p-[10px]">
-                        <i data-lucide="home" class="w-[20px] h-[20px] text-white"></i>
+                <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-1 active:scale-95 transition-transform" data-target="home" aria-current="page">
+                    <div class="mobile-nav-home-orb rounded-full p-[11px]">
+                        <i data-lucide="home" class="w-[22px] h-[22px] text-white"></i>
                     </div>
-                    <span class="mobile-nav-home-label text-[9px] font-bold leading-none mt-0.5">หน้าหลัก</span>
+                    <span class="mobile-nav-home-label text-[10px] font-semibold leading-none">หน้าหลัก</span>
                 </button>
             </div>
 
             <!-- โซน -->
-            <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-[3px] flex-1 px-1 py-1 transition-colors min-w-0" data-target="zone">
-                <i data-lucide="map-pin" class="w-[19px] h-[19px] flex-shrink-0"></i>
-                <span class="text-[9px] font-medium leading-none">โซน</span>
-                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500 mt-[1px]"></span>
+            <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-tab flex flex-col items-center flex-1 pt-2 pb-1 px-1 min-w-0 active:scale-95 transition-transform" data-target="zone">
+                <div class="nav-tab-pill flex flex-col items-center gap-[3px]">
+                    <i data-lucide="map-pin" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="text-[10px] font-medium leading-none">โซน</span>
+                </div>
             </button>
 
             <!-- TACMAP -->
-            <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-[3px] flex-1 px-1 py-1 transition-colors min-w-0" data-target="tacmap">
-                <i data-lucide="map" class="w-[19px] h-[19px] flex-shrink-0"></i>
-                <span class="text-[9px] font-medium leading-none">TACMAP</span>
-                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500 mt-[1px]"></span>
+            <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-tab flex flex-col items-center flex-1 pt-2 pb-1 px-1 min-w-0 active:scale-95 transition-transform" data-target="tacmap">
+                <div class="nav-tab-pill flex flex-col items-center gap-[3px]">
+                    <i data-lucide="map" class="w-5 h-5 flex-shrink-0"></i>
+                    <span class="text-[10px] font-medium leading-none">TACMAP</span>
+                </div>
             </button>
 
         </div>
@@ -4297,12 +4328,6 @@
                 const isActive = btn.dataset.target === tab;
                 btn.classList.toggle('is-active', isActive);
             });
-
-            const iconEl = sideToggle.querySelector('i[data-lucide]');
-            if (iconEl) {
-                iconEl.setAttribute('data-lucide', shouldOpen ? 'x' : 'menu');
-                createIcons();
-            }
         }
 
         function updateHeaders() {
