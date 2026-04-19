@@ -860,48 +860,48 @@
     <!-- Mobile Bottom Navigation (Tab Bar) -->
     <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 px-2.5 pb-safe">
         <div class="mobile-nav-shell rounded-[28px] overflow-hidden">
-        <div class="flex justify-around items-end pt-2.5 pb-1.5 px-1.5 pl-12">
-            <button onclick="switchTab('dashboard')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="dashboard">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">ภาพรวม</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+        <div class="flex justify-around items-end pt-2 pb-1.5 px-1 pl-11">
+            <button onclick="switchTab('dashboard')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="dashboard">
+                <i data-lucide="layout-dashboard" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">ภาพรวม</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('ics')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="ics">
-                <i data-lucide="network" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">ผังฯ</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            <button onclick="switchTab('ics')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="ics">
+                <i data-lucide="network" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">ผังฯ</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
 
-            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="personnel">
-                <i data-lucide="users" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">ลงทะเบียน</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            <button onclick="switchTab('personnel')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="personnel">
+                <i data-lucide="users" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">ลงทะเบียน</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
 
             <!-- Center FAB: หน้าหลัก -->
-            <div class="flex flex-col items-center flex-1">
-                <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-1 active:scale-95 transition-transform" data-target="home" aria-current="page">
-                    <div class="mobile-nav-home-orb rounded-full p-3">
-                        <i data-lucide="home" class="w-5 h-5 text-white"></i>
+            <div class="flex flex-col items-center flex-1 min-w-0">
+                <button onclick="switchTab('home')" class="mobile-nav-btn mobile-nav-home is-active flex flex-col items-center gap-0.5 active:scale-95 transition-transform" data-target="home" aria-current="page">
+                    <div class="mobile-nav-home-orb rounded-full p-[9px]">
+                        <i data-lucide="home" class="w-[18px] h-[18px] text-white"></i>
                     </div>
-                    <span class="mobile-nav-home-label text-[9px] font-bold mt-0.5">หน้าหลัก</span>
+                    <span class="mobile-nav-home-label text-[8px] font-bold mt-0.5">หน้าหลัก</span>
                 </button>
             </div>
 
-            <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="zone">
-                <i data-lucide="map-pin" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">โซน</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            <button onclick="switchTab('zone')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="zone">
+                <i data-lucide="map-pin" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">โซน</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="tacmap">
-                <i data-lucide="map" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">TACMAP</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            <button onclick="switchTab('tacmap')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="tacmap">
+                <i data-lucide="map" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">TACMAP</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
-            <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-1 flex-1 px-1 py-1 transition-colors" data-target="radio">
-                <i data-lucide="radio" class="w-5 h-5"></i>
-                <span class="text-[9px] font-medium">วิทยุ</span>
-                <span class="mobile-nav-main-dot h-[2px] w-5 rounded-full bg-blue-500"></span>
+            <button onclick="switchTab('radio')" class="mobile-nav-btn mobile-nav-main flex flex-col items-center gap-0.5 flex-1 px-0.5 py-1 transition-colors min-w-0" data-target="radio">
+                <i data-lucide="radio" class="w-[18px] h-[18px] flex-shrink-0"></i>
+                <span class="text-[8px] font-medium leading-tight truncate w-full text-center">วิทยุ</span>
+                <span class="mobile-nav-main-dot h-[2px] w-4 rounded-full bg-blue-500"></span>
             </button>
         </div>
         </div>
