@@ -1859,6 +1859,9 @@
             <div class="px-5 md:px-6 py-4 border-b border-slate-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div id="historyDetailHeader" class="min-w-0"></div>
                 <div class="flex gap-2 md:gap-3">
+                    <button id="history-delete-btn" onclick="handleDeleteCurrentHistoryIncident()" class="hidden px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 active:scale-95 flex items-center gap-2 shadow-md shadow-red-600/20">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> ลบประวัติ
+                    </button>
                     <button onclick="printHistoryIncidentDetail('pdf')" class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 active:scale-95 flex items-center gap-2 shadow-md shadow-indigo-600/20">
                         <i data-lucide="file-output" class="w-4 h-4"></i> บันทึก PDF
                     </button>
@@ -1994,6 +1997,7 @@
         const FIRESTORE_MUTATION_METHODS = new Set([
             'saveNewIncident',
             'closeIncident',
+            'deleteIncidentHistory',
             'updateIncidentSafetyStatus',
             'addLogRecord',
             'registerAgency',
@@ -2010,7 +2014,7 @@
             'resetUserPin',
             'deleteUser'
         ]);
-        const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState']);
+        const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState', 'deleteIncidentHistory']);
         const TACMAP_ROUTE_COLORS = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626', '#0891b2'];
         const TACMAP_MARKER_ICON_OPTIONS = [
             { id: 'emergency', label: 'จุดทั่วไป', emoji: '📍', markerClass: 'is-emergency', bgGradient: '#fee2e2, #fca5a5' },
@@ -2435,6 +2439,15 @@
             const method = String(methodName || '');
             const callArgs = Array.isArray(args) ? args : [];
 
+            const deleteCollectionByIncidentId = async (collectionName, incidentId) => {
+                const snapshot = await db.collection(collectionName).where('IncidentID', '==', incidentId).get();
+                if (!snapshot || snapshot.empty) return 0;
+                const batch = db.batch();
+                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+                return snapshot.size;
+            };
+
             if (method === 'getInitialData') {
                 return firestoreGetInitialData();
             }
@@ -2466,6 +2479,23 @@
                     ClosedBy: callArgs[2] || '',
                     ClosedAtEpoch: Number.isFinite(Number(callArgs[3])) ? Number(callArgs[3]) : null
                 }, { merge: true });
+                return true;
+            }
+
+            if (method === 'deleteIncidentHistory') {
+                const incidentId = asDocId(callArgs[0]);
+                if (!incidentId) return false;
+
+                await db.collection('incidents').doc(incidentId).delete();
+                await Promise.all([
+                    deleteCollectionByIncidentId('logs', incidentId),
+                    deleteCollectionByIncidentId('personnel', incidentId),
+                    deleteCollectionByIncidentId('zoneStaff', incidentId),
+                    deleteCollectionByIncidentId('zoneRecords', incidentId),
+                    deleteCollectionByIncidentId('ics', incidentId),
+                    deleteCollectionByIncidentId('tacmap', incidentId)
+                ]);
+                await db.collection('tacmap').doc(incidentId).delete().catch(() => {});
                 return true;
             }
 
@@ -4048,8 +4078,19 @@
             const headerEl = document.getElementById('historyDetailHeader');
             const bodyEl = document.getElementById('historyDetailBody');
             const subtitleEl = document.getElementById('historyDetailSubtitle');
+            const deleteBtn = document.getElementById('history-delete-btn');
             const safetyConfig = bundle.safetyConfig;
             const icsRows = renderIcsSummaryRows(bundle.icsData);
+
+            if (deleteBtn) {
+                if (hasPermission('DELETE_HISTORY')) {
+                    deleteBtn.classList.remove('hidden');
+                    deleteBtn.classList.add('inline-flex');
+                } else {
+                    deleteBtn.classList.add('hidden');
+                    deleteBtn.classList.remove('inline-flex');
+                }
+            }
 
             subtitleEl.innerText = `รายละเอียดเหตุการณ์ ${bundle.incident.id} พร้อมพิมพ์และบันทึก PDF`;
             headerEl.innerHTML = `
@@ -4180,6 +4221,11 @@
             currentHistoryIncidentId = null;
             const modal = document.getElementById('historyDetailModal');
             if (modal) modal.classList.add('hidden');
+        }
+
+        function handleDeleteCurrentHistoryIncident() {
+            if (!currentHistoryIncidentId) return;
+            handleDeleteHistoryIncident(currentHistoryIncidentId);
         }
 
         function buildIncidentPrintableDocument(bundle, mode) {
@@ -5149,6 +5195,7 @@
             switch (action) {
                 case 'NEW_INCIDENT': return role === 'Admin';
                 case 'CLOSE_INCIDENT': return role === 'Admin' || role === 'Commander';
+                case 'DELETE_HISTORY': return role === 'Admin';
                 case 'EDIT_ICS': return role === 'Admin' || role === 'Commander' || role === 'Liaison';
                 case 'EDIT_SAFETY': return role === 'Admin' || role === 'Commander';
                 case 'EDIT_ZONE': return role === 'Admin' || role === 'Commander';
@@ -5320,20 +5367,26 @@
                 `;
             }
 
+            const canDeleteHistory = hasPermission('DELETE_HISTORY');
             const historyHtml = appData.history.map(h => `
-                <button type="button" onclick="openHistoryDetailModal('${h.id}')" class="w-full bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-left active:scale-[0.99]">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${h.name}</h4>
-                            <p class="text-[11px] text-slate-400 mt-1">กดเพื่อดูรายละเอียด / พิมพ์ / บันทึก PDF</p>
-                        </div>
-                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">LV. ${h.level}</span>
+                <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start gap-2">
+                        <button type="button" onclick="openHistoryDetailModal('${h.id}')" class="flex-1 text-left active:scale-[0.99]">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${h.name}</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">กดเพื่อดูรายละเอียด / พิมพ์ / บันทึก PDF</p>
+                                </div>
+                                <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">LV. ${h.level}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 font-mono">
+                                <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${h.date}</span>
+                                <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ระยะเวลา ${h.duration || '-'}</span>
+                            </div>
+                        </button>
+                        ${canDeleteHistory ? `<button type="button" onclick="handleDeleteHistoryIncident('${h.id}', event)" class="shrink-0 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-2 rounded-lg active:scale-95" title="ลบประวัติ"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                     </div>
-                    <div class="text-[11px] text-slate-500 flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 font-mono">
-                        <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${h.date}</span>
-                        <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ระยะเวลา ${h.duration || '-'}</span>
-                    </div>
-                </button>
+                </div>
             `).join('');
             document.getElementById('home-history-container').innerHTML = historyHtml || '<p class="text-sm text-slate-400 text-center py-4">ยังไม่มีประวัติ</p>';
             renderRealtimePulseStatus();
@@ -6178,6 +6231,53 @@
             invokeBackendMethod('closeIncident', [incId, durationStr, currentUser.name, closedAtEpoch])
                 .then(() => { finishClose(); })
                 .catch((err) => { handleCloseError(err); });
+        }
+
+        function handleDeleteHistoryIncident(incidentId, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!hasPermission('DELETE_HISTORY')) {
+                alert('สิทธิ์ไม่เพียงพอในการลบประวัติเหตุการณ์');
+                return;
+            }
+
+            const incident = getIncidentRecordById(incidentId);
+            if (!incident || incident.status !== 'Closed') {
+                alert('ไม่พบเหตุการณ์ที่ปิดแล้วสำหรับลบ');
+                return;
+            }
+
+            const confirmDelete = confirm(`ต้องการลบประวัติเหตุการณ์ ${incident.id} ถาวรใช่หรือไม่?`);
+            if (!confirmDelete) return;
+
+            const normalizedId = String(incidentId);
+            const applyLocalDelete = () => {
+                appData.sourceData.incidents = appData.sourceData.incidents.filter((item) => String(item.id) !== normalizedId);
+                appData.sourceData.logs = appData.sourceData.logs.filter((item) => String(item.incidentId) !== normalizedId);
+                appData.sourceData.personnel = appData.sourceData.personnel.filter((item) => String(item.incidentId) !== normalizedId);
+                appData.sourceData.zoneStaff = appData.sourceData.zoneStaff.filter((item) => String(item.incidentId) !== normalizedId);
+                appData.sourceData.zoneRecords = appData.sourceData.zoneRecords.filter((item) => String(item.incidentId) !== normalizedId);
+                appData.sourceData.ics = appData.sourceData.ics.filter((item) => String(item.incidentId) !== normalizedId);
+                appData.sourceData.tacmap = appData.sourceData.tacmap.filter((item) => String(item.incidentId) !== normalizedId);
+                delete tacMapStateByIncident[normalizedId];
+                saveTacMapState();
+
+                rebuildIncidentCollections(getCurrentIncidentId() || getStoredIncidentId());
+                if (currentHistoryIncidentId && String(currentHistoryIncidentId) === normalizedId) {
+                    closeHistoryDetailModal();
+                }
+                renderAll();
+            };
+
+            setLoadingScreenVisible(true, 'กำลังลบประวัติเหตุการณ์...');
+            invokeBackendMethod('deleteIncidentHistory', [normalizedId])
+                .then(() => {
+                    applyLocalDelete();
+                    setLoadingScreenVisible(false);
+                })
+                .catch((err) => {
+                    setLoadingScreenVisible(false);
+                    showGlobalError('DELETE_HISTORY', 'ลบประวัติเหตุการณ์ไม่สำเร็จ: ' + (err && err.message ? err.message : err), null);
+                });
         }
 
         function handleAddLog(e) {
