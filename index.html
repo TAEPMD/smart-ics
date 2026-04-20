@@ -100,15 +100,15 @@
         .tacmap-full-width-wrapper {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 0;
+            gap: 16px;
             position: relative;
+            align-items: start;
         }
         .tacmap-floating-panel {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 380px;
-            max-height: 85vh;
+            position: relative;
+            order: -1;
+            width: 100%;
+            max-height: none;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
@@ -139,12 +139,9 @@
             background: rgba(203, 213, 225, 0.8);
         }
         .tacmap-floating-panel.collapsed {
-            width: auto;
+            width: 100%;
             height: auto;
             max-height: none;
-            bottom: auto;
-            top: 20px;
-            right: 20px;
             padding: 0;
             background: transparent;
             border: none;
@@ -159,9 +156,9 @@
             display: flex;
         }
         .tacmap-toggle-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
+            position: sticky;
+            top: 0;
+            margin-left: auto;
             display: none;
             width: 48px;
             height: 48px;
@@ -180,8 +177,7 @@
             letter-spacing: 1px;
         }
         .tacmap-floating-panel:not(.collapsed) .tacmap-toggle-btn {
-            display: flex;
-            position: static;
+            display: none;
             background: rgba(59, 130, 246, 0.1);
             color: #3b82f6;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
@@ -503,36 +499,67 @@
         .tacmap-map-overlay > div {
             pointer-events: auto;
         }
-        @media (max-width: 767px) {
-            #tacmap-container {
-                max-height: 80vh;
-                height: 80vh;
-                min-height: 400px;
-            }
-            .view-section.active#view-tacmap {
-                height: auto;
-                overflow: visible;
+        @media (min-width: 1024px) {
+            .tacmap-full-width-wrapper {
+                grid-template-columns: minmax(0, 1fr) 380px;
+                gap: 20px;
             }
             .tacmap-floating-panel {
-                width: calc(100vw - 40px);
-                bottom: 10px;
-                right: 20px;
-                max-height: 50vh;
+                order: 2;
+                position: sticky;
+                top: 96px;
+                max-height: calc(100vh - 120px);
+            }
+            #tacmap-container {
+                min-height: 620px;
+            }
+            .tacmap-floating-panel.collapsed {
+                width: 100%;
+                padding: 20px;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
+                border: 1px solid rgba(226, 232, 240, 0.6);
+                box-shadow: 0 25px 50px rgba(15, 23, 42, 0.12), 0 0 1px rgba(15, 23, 42, 0.05);
+            }
+            .tacmap-floating-panel.collapsed > *:not(.tacmap-toggle-btn) {
+                display: flex;
+            }
+            .tacmap-toggle-btn,
+            .tacmap-floating-panel.collapsed .tacmap-toggle-btn,
+            .tacmap-floating-panel:not(.collapsed) .tacmap-toggle-btn {
+                display: none !important;
+            }
+        }
+        @media (max-width: 1023px) {
+            .tacmap-floating-panel {
+                order: -1;
+            }
+            .tacmap-toggle-btn,
+            .tacmap-floating-panel:not(.collapsed) .tacmap-toggle-btn {
+                display: flex;
+            }
+        }
+        @media (max-width: 767px) {
+            #tacmap-container {
+                max-height: none;
+                height: 62vh;
+                min-height: 360px;
+            }
+            .tacmap-floating-panel {
+                width: 100%;
+                max-height: none;
                 border-radius: 16px;
             }
             .tacmap-floating-panel.collapsed {
-                width: auto;
-                bottom: auto;
-                top: 10px;
+                width: 100%;
             }
         }
         @media (max-width: 480px) {
+            #tacmap-container {
+                height: 56vh;
+                min-height: 320px;
+            }
             .tacmap-floating-panel {
-                width: calc(100vw - 24px);
-                bottom: 8px;
-                right: 12px;
                 padding: 12px;
-                max-height: 45vh;
                 border-radius: 14px;
             }
         }
@@ -3631,11 +3658,25 @@
         function handleTacMapTogglePanel() {
             const panel = document.getElementById('tacmap-floating-panel');
             const toggleIcon = document.getElementById('tacmap-toggle-icon');
-            if (panel) {
-                panel.classList.toggle('collapsed');
-                toggleIcon.textContent = panel.classList.contains('collapsed') ? '⊕' : '✕';
+            if (!panel || !toggleIcon) return;
+            if (window.innerWidth >= 1024) {
+                panel.classList.remove('collapsed');
+                toggleIcon.textContent = '✕';
+                return;
             }
+            panel.classList.toggle('collapsed');
+            toggleIcon.textContent = panel.classList.contains('collapsed') ? '⊕' : '✕';
         }
+
+        window.addEventListener('resize', () => {
+            const panel = document.getElementById('tacmap-floating-panel');
+            const toggleIcon = document.getElementById('tacmap-toggle-icon');
+            if (!panel || !toggleIcon) return;
+            if (window.innerWidth >= 1024) {
+                panel.classList.remove('collapsed');
+                toggleIcon.textContent = '✕';
+            }
+        });
 
         // Safe accessor: returns value from record using multiple possible key names
         // Unlike getRecordValue, this does NOT skip blank values - it returns whatever is there
