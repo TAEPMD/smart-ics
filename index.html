@@ -1416,10 +1416,16 @@
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800 tracking-tight">จัดการผู้ใช้งาน (User Control)</h2>
                         <p class="text-sm text-slate-500 mt-1">กำหนดสิทธิ์และรหัสประจำตัวของเจ้าหน้าที่ (Admin Only)</p>
+                        <p id="users-migration-status" class="text-xs text-slate-400 mt-1 hidden"></p>
                     </div>
-                    <button onclick="document.getElementById('newUserModal').classList.remove('hidden')" class="w-full md:w-auto bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
-                        <i data-lucide="user-plus" class="w-4 h-4"></i> เพิ่มผู้ใช้งาน
-                    </button>
+                    <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
+                        <button id="btn-run-duration-migration" onclick="handleRunDurationMigration()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
+                            <i data-lucide="history" class="w-4 h-4"></i> รัน Migration ระยะเวลา
+                        </button>
+                        <button onclick="document.getElementById('newUserModal').classList.remove('hidden')" class="w-full md:w-auto bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> เพิ่มผู้ใช้งาน
+                        </button>
+                    </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -4526,14 +4532,64 @@
                 });
             });
 
-            if (patched.length === 0) return;
+            if (patched.length === 0) {
+                return { patchedCount: 0, syncJobs: [] };
+            }
 
+            const syncJobs = [];
             patched.forEach((item) => {
-                invokeBackendMethod('closeIncident', [item.id, item.duration, item.closedBy, item.closedAtEpoch]).catch((err) => {
+                const job = invokeBackendMethod('closeIncident', [item.id, item.duration, item.closedBy, item.closedAtEpoch]).catch((err) => {
                     console.warn('[Smart ICS] duration migration sync failed:', item.id, err);
                 });
+                syncJobs.push(job);
             });
             console.log('[Smart ICS] Migrated incident durations:', patched.map((item) => `${item.id}:${item.duration}`).join(', '));
+            return { patchedCount: patched.length, syncJobs, patched };
+        }
+
+        async function handleRunDurationMigration() {
+            if (!hasPermission('MANAGE_USERS')) {
+                alert('ไม่มีสิทธิ์ดำเนินการ Migration');
+                return;
+            }
+
+            if (!confirm('ยืนยันรัน Migration ระยะเวลาเหตุการณ์ย้อนหลัง?')) return;
+
+            const statusEl = document.getElementById('users-migration-status');
+            const triggerBtn = document.getElementById('btn-run-duration-migration');
+            const processingBtn = beginButtonProcessing(triggerBtn);
+
+            try {
+                const result = migrateClosedIncidentDurations() || { patchedCount: 0, syncJobs: [] };
+                const patchedCount = Number(result.patchedCount || 0);
+                const jobs = Array.isArray(result.syncJobs) ? result.syncJobs : [];
+                const settled = jobs.length > 0 ? await Promise.allSettled(jobs) : [];
+                const successCount = settled.filter((item) => item.status === 'fulfilled').length;
+                const failedCount = settled.length - successCount;
+
+                if (statusEl) {
+                    statusEl.classList.remove('hidden');
+                    statusEl.textContent = patchedCount > 0
+                        ? `Migration เสร็จสิ้น: ปรับปรุง ${patchedCount} เหตุการณ์ | Sync สำเร็จ ${successCount} | ล้มเหลว ${failedCount}`
+                        : 'Migration เสร็จสิ้น: ไม่พบรายการที่ต้องปรับปรุง';
+                }
+
+                rebuildIncidentCollections(getCurrentIncidentId() || getStoredIncidentId());
+                renderHome();
+
+                alert(patchedCount > 0
+                    ? `Migration สำเร็จ ปรับปรุง ${patchedCount} เหตุการณ์` 
+                    : 'ไม่พบเหตุการณ์ที่ต้อง migration เพิ่มเติม');
+            } catch (err) {
+                if (statusEl) {
+                    statusEl.classList.remove('hidden');
+                    statusEl.textContent = `Migration ล้มเหลว: ${err && err.message ? err.message : err}`;
+                }
+                showGlobalError('MIGRATE_DURATION', 'Migration ระยะเวลาไม่สำเร็จ: ' + (err && err.message ? err.message : err), null);
+            } finally {
+                endButtonProcessing(processingBtn);
+                createIcons();
+            }
         }
 
         // Optimistic UI Backend Call (ซ่อน Loader สำหรับคำสั่งทั่วไป)
@@ -5747,6 +5803,8 @@
         function renderUsers() {
             const navUsers = document.getElementById('nav-users');
             const mobileNavUsers = document.getElementById('mobile-nav-users');
+            const migrationBtn = document.getElementById('btn-run-duration-migration');
+            const migrationStatus = document.getElementById('users-migration-status');
             if(navUsers) {
                 if(hasPermission('MANAGE_USERS')) navUsers.classList.remove('hidden');
                 else navUsers.classList.add('hidden');
@@ -5759,6 +5817,12 @@
                     mobileNavUsers.classList.add('hidden');
                     mobileNavUsers.classList.remove('flex');
                 }
+            }
+            if (migrationBtn) {
+                migrationBtn.classList.toggle('hidden', !hasPermission('MANAGE_USERS'));
+            }
+            if (migrationStatus && !hasPermission('MANAGE_USERS')) {
+                migrationStatus.classList.add('hidden');
             }
 
             const usersHtml = Object.keys(appData.users).map(pin => {
