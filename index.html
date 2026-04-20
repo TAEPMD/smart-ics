@@ -86,7 +86,33 @@
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
         .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
         #auth-screen { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        #tacmap-map { min-height: 420px; border-radius: 16px; }
+        #tacmap-map { min-height: 360px; height: clamp(360px, 58vh, 720px); border-radius: 16px; }
+        .tacmap-panel-section {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 14px;
+        }
+        .tacmap-panel-section:first-child {
+            border-top: 0;
+            padding-top: 0;
+        }
+        .tacmap-map-shell {
+            position: relative;
+            overflow: hidden;
+        }
+        .tacmap-map-overlay {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 12px;
+            z-index: 500;
+            pointer-events: none;
+        }
+        .tacmap-map-overlay > div {
+            pointer-events: auto;
+        }
+        @media (max-width: 767px) {
+            #tacmap-map { height: 48vh; min-height: 320px; border-radius: 20px; }
+        }
         .tacmap-custom-marker {
             background: transparent;
             border: 0;
@@ -770,9 +796,9 @@
                     <p class="text-sm text-slate-500 mt-1">จัดการจุดเกิดเหตุ หมุดภาคสนาม และเส้นทางปฏิบัติการ พร้อม sync แบบ real-time ทุกเครื่อง</p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                    <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-sm lg:col-span-1">
-                        <div class="space-y-3">
+                <div class="grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-4 items-start">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-sm order-2 lg:order-1 lg:sticky lg:top-4">
+                        <div class="tacmap-panel-section space-y-3">
                             <div class="flex items-center justify-between gap-2">
                                 <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
                                     <span class="bg-red-100 text-red-600 rounded-lg p-1.5"><i data-lucide="siren" class="w-4 h-4"></i></span>
@@ -780,16 +806,18 @@
                                 </h3>
                                 <span id="tacmap-mode-badge" class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">โหมดปกติ</span>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">Latitude</label>
-                                <input id="tacmap-lat" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="13.7563">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">Longitude</label>
-                                <input id="tacmap-lng" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="100.5018">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Latitude</label>
+                                    <input id="tacmap-lat" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="13.7563">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Longitude</label>
+                                    <input id="tacmap-lng" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="100.5018">
+                                </div>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
                                 <button onclick="handleTacMapUseCurrentLocation()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
                                     <i data-lucide="crosshair" class="w-4 h-4"></i> ดึงพิกัดปัจจุบัน
                                 </button>
@@ -799,7 +827,7 @@
                             </div>
                         </div>
 
-                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                        <div class="tacmap-panel-section space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-1.5">
                                     <label class="text-xs font-bold text-red-600">Hot Zone</label>
@@ -824,22 +852,30 @@
                             <p class="text-[11px] text-slate-400">แสดงวง 3 ชั้น: แดง (Hot), เหลือง (Warm), เขียว (Cold) และปรับรัศมีได้แยกกัน</p>
                         </div>
 
-                        <div class="pt-2 border-t border-slate-100 space-y-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">ชื่อหมุด / ชื่อเส้นทาง</label>
-                                <input id="tacmap-object-name" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1.5">ไอคอนหมุด</label>
-                                <select id="tacmap-marker-icon" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                    <option value="emergency">📍 จุดทั่วไป</option>
-                                    <option value="ambulance">🚑 จุดแพทย์</option>
-                                    <option value="fire">🚒 จุดดับเพลิง</option>
-                                    <option value="police">🚓 จุดตำรวจ</option>
-                                    <option value="staging">⛑️ จุดรวมพล</option>
-                                    <option value="warning">⚠️ จุดเตือนภัย</option>
-                                </select>
-                                <p class="text-[11px] text-slate-400 mt-1.5">ใช้ตอนเพิ่มหมุดใหม่ และเปลี่ยนได้ภายหลังจากรายการหมุดด้านล่าง</p>
+                        <div class="tacmap-panel-section space-y-3">
+                            <div class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <h4 class="text-xs font-black uppercase tracking-wider text-emerald-700">เพิ่มหมุดภาคสนาม</h4>
+                                        <p class="text-[11px] text-emerald-700/80 mt-1">ตั้งชื่อและเลือกไอคอนก่อนแตะบนแผนที่</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white text-emerald-700 border border-emerald-200">แตะบนแผนที่</span>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">ชื่อหมุด / ชื่อเส้นทาง</label>
+                                    <input id="tacmap-object-name" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">ไอคอนหมุด</label>
+                                    <select id="tacmap-marker-icon" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="emergency">📍 จุดทั่วไป</option>
+                                        <option value="ambulance">🚑 จุดแพทย์</option>
+                                        <option value="fire">🚒 จุดดับเพลิง</option>
+                                        <option value="police">🚓 จุดตำรวจ</option>
+                                        <option value="staging">⛑️ จุดรวมพล</option>
+                                        <option value="warning">⚠️ จุดเตือนภัย</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <button onclick="handleTacMapEnableAddMarkerMode()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
@@ -860,7 +896,7 @@
                             <p class="text-[11px] text-slate-400">เลือกโหมดแล้วคลิกบนแผนที่เพื่อวางหมุดหรือเพิ่มจุดของเส้นทาง เส้นทางที่สร้างจะบันทึกและ sync ทุกเครื่อง</p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                        <div class="tacmap-panel-section grid grid-cols-2 gap-2">
                             <button onclick="handleTacMapResetPin()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl active:scale-95 flex items-center justify-center gap-1">
                                 <i data-lucide="map-pin-off" class="w-3.5 h-3.5"></i> รีเซ็ตหมุด
                             </button>
@@ -869,7 +905,7 @@
                             </button>
                         </div>
 
-                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                        <div class="tacmap-panel-section space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">หมุดภาคสนาม</h4>
@@ -887,8 +923,20 @@
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm lg:col-span-3">
-                        <div id="tacmap-map"></div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm order-1 lg:order-2">
+                        <div class="tacmap-map-shell">
+                            <div class="tacmap-map-overlay flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                <div class="rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-sm px-3 py-2">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">สถานะการใช้งาน</div>
+                                    <div class="text-sm font-bold text-slate-800 mt-1">แตะหมุดเพื่อเปิด popup แล้วแก้ไขชื่อหรือไอคอนได้ทันที</div>
+                                </div>
+                                <div class="rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-sm px-3 py-2 self-start">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">มุมมอง</div>
+                                    <div class="text-sm font-bold text-slate-800 mt-1">ลากแผนที่ได้ทั้งมือถือและคอม</div>
+                                </div>
+                            </div>
+                            <div id="tacmap-map"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1281,6 +1329,57 @@
         </div>
     </div>
 
+    <div id="tacmapMarkerModal" class="fixed inset-0 bg-slate-900/70 z-[75] hidden flex items-end md:items-center justify-center backdrop-blur-sm px-0 md:px-4">
+        <div class="bg-white rounded-t-[28px] md:rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-[slideUp_0.2s_ease-out] max-h-[92vh] flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-slate-50">
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <div class="bg-emerald-100 p-1.5 rounded-md text-emerald-600"><i data-lucide="map-pinned" class="w-4 h-4"></i></div> แก้ไขหมุดภาคสนาม
+                </h3>
+                <button type="button" onclick="closeTacMapMarkerModal()" class="p-1.5 bg-white/70 rounded-full text-slate-500 active:scale-95">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <form id="tacmapMarkerForm" onsubmit="saveTacMapMarkerModal(event)" class="p-5 space-y-4 overflow-y-auto">
+                <input type="hidden" id="tacmap-marker-modal-id">
+                <input type="hidden" id="tacmap-marker-modal-refocus" value="0">
+
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 flex items-center gap-3">
+                    <div id="tacmap-marker-modal-preview" class="tacmap-marker-icon-chip is-emergency text-base">📍</div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ตัวอย่างหมุด</p>
+                        <p id="tacmap-marker-modal-preview-label" class="text-sm font-bold text-slate-800 mt-1">จุดทั่วไป</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">ชื่อหมุด</label>
+                    <input type="text" id="tacmap-marker-modal-name" required placeholder="เช่น จุดคัดแยกผู้บาดเจ็บ" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">ไอคอนหมุด</label>
+                    <select id="tacmap-marker-modal-icon" onchange="handleTacMapMarkerModalIconPreview(this.value)" class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50">
+                        <option value="emergency">📍 จุดทั่วไป</option>
+                        <option value="ambulance">🚑 จุดแพทย์</option>
+                        <option value="fire">🚒 จุดดับเพลิง</option>
+                        <option value="police">🚓 จุดตำรวจ</option>
+                        <option value="staging">⛑️ จุดรวมพล</option>
+                        <option value="warning">⚠️ จุดเตือนภัย</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 pb-safe">
+                    <button type="button" onclick="closeTacMapMarkerModal()" class="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors text-sm">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/20 active:scale-95 text-sm">
+                        บันทึกการแก้ไข
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- History Detail Modal -->
     <div id="historyDetailModal" class="fixed inset-0 bg-slate-900/70 z-[80] hidden flex items-end md:items-center justify-center backdrop-blur-sm px-0 md:px-4">
         <div class="bg-white w-full h-[92vh] md:h-auto md:max-h-[90vh] md:max-w-5xl rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-[slideUp_0.25s_ease-out]">
@@ -1422,6 +1521,7 @@
         let tacMapDraftRoute = null;
         let tacMapDraftRouteLine = null;
         let tacMapPersistTimers = {};
+        let tacMapMarkerModalFocusId = '';
         let lastActionButton = null;
         let firebaseInitPromise = null;
         let firestoreDb = null;
@@ -2102,11 +2202,6 @@
             return TACMAP_MARKER_ICON_OPTIONS.find((item) => item.id === normalized) || TACMAP_MARKER_ICON_OPTIONS[0];
         }
 
-        function renderTacMapMarkerIconSelectOptions(selectedIconId) {
-            const selected = normalizeTacMapMarkerIcon(selectedIconId);
-            return TACMAP_MARKER_ICON_OPTIONS.map((item) => `<option value="${item.id}"${item.id === selected ? ' selected' : ''}>${item.emoji} ${escapeHtml(item.label)}</option>`).join('');
-        }
-
         function getTacMapMarkerListIconHtml(iconId) {
             const meta = getTacMapMarkerIconMeta(iconId);
             return `<span class="tacmap-marker-icon-chip ${meta.markerClass}" title="${escapeHtml(meta.label)}">${meta.emoji}</span>`;
@@ -2125,7 +2220,74 @@
 
         function getTacMapMarkerPopupHtml(marker) {
             const meta = getTacMapMarkerIconMeta(marker && marker.icon);
-            return `<div style="min-width:140px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span>${meta.emoji}</span><b>${escapeHtml(marker.name)}</b></div><span style="font-size:11px;color:#475569">${escapeHtml(meta.label)}<br>Lat: ${Number(marker.lat).toFixed(5)}<br>Lng: ${Number(marker.lng).toFixed(5)}</span></div>`;
+            return `<div style="min-width:180px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span>${meta.emoji}</span><b>${escapeHtml(marker.name)}</b></div><span style="font-size:11px;color:#475569">${escapeHtml(meta.label)}<br>Lat: ${Number(marker.lat).toFixed(5)}<br>Lng: ${Number(marker.lng).toFixed(5)}</span><button type="button" onclick="openTacMapMarkerModal('${marker.id}', true)" style="margin-top:10px;width:100%;padding:8px 10px;border-radius:10px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-size:12px;font-weight:700;cursor:pointer;">แก้ชื่อ / ไอคอน</button></div>`;
+        }
+
+        function handleTacMapMarkerModalIconPreview(iconId) {
+            const meta = getTacMapMarkerIconMeta(iconId);
+            const preview = document.getElementById('tacmap-marker-modal-preview');
+            const label = document.getElementById('tacmap-marker-modal-preview-label');
+            if (preview) preview.className = `tacmap-marker-icon-chip ${meta.markerClass} text-base`;
+            if (preview) preview.innerText = meta.emoji;
+            if (label) label.innerText = meta.label;
+        }
+
+        function closeTacMapMarkerModal() {
+            const modal = document.getElementById('tacmapMarkerModal');
+            if (modal) modal.classList.add('hidden');
+            tacMapMarkerModalFocusId = '';
+        }
+
+        function openTacMapMarkerModal(markerId, refocusAfterSave = false) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const marker = state.markers.find((item) => item.id === markerId);
+            if (!marker) return;
+
+            const modal = document.getElementById('tacmapMarkerModal');
+            const idEl = document.getElementById('tacmap-marker-modal-id');
+            const nameEl = document.getElementById('tacmap-marker-modal-name');
+            const iconEl = document.getElementById('tacmap-marker-modal-icon');
+            const refocusEl = document.getElementById('tacmap-marker-modal-refocus');
+            if (!modal || !idEl || !nameEl || !iconEl || !refocusEl) return;
+
+            idEl.value = marker.id;
+            nameEl.value = marker.name || '';
+            iconEl.value = normalizeTacMapMarkerIcon(marker.icon);
+            refocusEl.value = refocusAfterSave ? '1' : '0';
+            tacMapMarkerModalFocusId = refocusAfterSave ? marker.id : '';
+            handleTacMapMarkerModalIconPreview(iconEl.value);
+            modal.classList.remove('hidden');
+            setTimeout(() => nameEl.focus(), 30);
+        }
+
+        function saveTacMapMarkerModal(event) {
+            if (event) event.preventDefault();
+            if (!appData.activeIncident) return;
+            const markerId = String(document.getElementById('tacmap-marker-modal-id')?.value || '');
+            const nextName = String(document.getElementById('tacmap-marker-modal-name')?.value || '').trim();
+            const nextIcon = normalizeTacMapMarkerIcon(document.getElementById('tacmap-marker-modal-icon')?.value || '');
+            const shouldRefocus = String(document.getElementById('tacmap-marker-modal-refocus')?.value || '0') === '1';
+            if (!markerId || !nextName) return;
+
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const marker = state.markers.find((item) => item.id === markerId);
+            if (!marker) return;
+
+            marker.name = nextName;
+            marker.icon = nextIcon;
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            closeTacMapMarkerModal();
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+            if (shouldRefocus || tacMapMarkerModalFocusId) {
+                const targetId = tacMapMarkerModalFocusId || markerId;
+                tacMapMarkerModalFocusId = '';
+                setTimeout(() => handleTacMapFocusMarker(targetId), 50);
+            }
         }
 
         function normalizeTacMapMarkers(rawMarkers) {
@@ -2623,15 +2785,13 @@
                                 </span>
                             </button>
                             <div class="flex items-center gap-1">
-                                <button onclick="handleTacMapRenameMarker('${marker.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="openTacMapMarkerModal('${marker.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="handleTacMapDeleteMarker('${marker.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
-                        <div class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-                            <select onchange="handleTacMapChangeMarkerIcon('${marker.id}', this.value)" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
-                                ${renderTacMapMarkerIconSelectOptions(marker.icon)}
-                            </select>
-                            <button onclick="handleTacMapRenameMarker('${marker.id}')" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-600">เปลี่ยนชื่อ</button>
+                        <div class="mt-2 flex items-center justify-between gap-2 border-t border-slate-200/70 pt-2">
+                            <div class="text-[11px] text-slate-400">แตะปุ่มแก้ไขเพื่อเปลี่ยนชื่อหรือไอคอนในหน้าจอเดียว</div>
+                            <button onclick="openTacMapMarkerModal('${marker.id}')" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-600 whitespace-nowrap">แก้ไขหมุด</button>
                         </div>
                     </div>
                 `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีหมุดภาคสนาม</div>';
@@ -2845,33 +3005,7 @@
         }
 
         function handleTacMapRenameMarker(markerId) {
-            if (!appData.activeIncident) return;
-            const state = getTacMapIncidentState(appData.activeIncident.id);
-            const marker = state.markers.find((item) => item.id === markerId);
-            if (!marker) return;
-            const nextName = prompt('แก้ไขชื่อหมุด', marker.name || '');
-            if (nextName === null) return;
-            marker.name = String(nextName).trim() || marker.name;
-            state.updatedAt = getThTime();
-            state.updatedBy = currentUser ? currentUser.name : 'system';
-            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
-            renderTacMapObjectsOnMap();
-            renderTacMapObjectLists();
-            scheduleTacMapStateSync(appData.activeIncident.id);
-        }
-
-        function handleTacMapChangeMarkerIcon(markerId, nextIconId) {
-            if (!appData.activeIncident) return;
-            const state = getTacMapIncidentState(appData.activeIncident.id);
-            const marker = state.markers.find((item) => item.id === markerId);
-            if (!marker) return;
-            marker.icon = normalizeTacMapMarkerIcon(nextIconId);
-            state.updatedAt = getThTime();
-            state.updatedBy = currentUser ? currentUser.name : 'system';
-            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
-            renderTacMapObjectsOnMap();
-            renderTacMapObjectLists();
-            scheduleTacMapStateSync(appData.activeIncident.id);
+            openTacMapMarkerModal(markerId);
         }
 
         function handleTacMapDeleteMarker(markerId) {
