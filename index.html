@@ -87,6 +87,51 @@
         .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
         #auth-screen { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         #tacmap-map { min-height: 420px; border-radius: 16px; }
+        .tacmap-custom-marker {
+            background: transparent;
+            border: 0;
+        }
+        .tacmap-marker-pin {
+            width: 38px;
+            height: 38px;
+            border-radius: 14px 14px 14px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            transform: rotate(-45deg);
+        }
+        .tacmap-marker-pin > span {
+            transform: rotate(45deg);
+            line-height: 1;
+        }
+        .tacmap-marker-pin.is-emergency { background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); }
+        .tacmap-marker-pin.is-ambulance { background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%); }
+        .tacmap-marker-pin.is-fire { background: linear-gradient(135deg, #ffedd5 0%, #fdba74 100%); }
+        .tacmap-marker-pin.is-police { background: linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 100%); }
+        .tacmap-marker-pin.is-staging { background: linear-gradient(135deg, #dcfce7 0%, #86efac 100%); }
+        .tacmap-marker-pin.is-warning { background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%); }
+        .tacmap-marker-icon-chip {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .tacmap-marker-icon-chip.is-emergency { background: #fee2e2; }
+        .tacmap-marker-icon-chip.is-ambulance { background: #dbeafe; }
+        .tacmap-marker-icon-chip.is-fire { background: #ffedd5; }
+        .tacmap-marker-icon-chip.is-police { background: #e0f2fe; }
+        .tacmap-marker-icon-chip.is-staging { background: #dcfce7; }
+        .tacmap-marker-icon-chip.is-warning { background: #fef3c7; }
         .btn-processing { position: relative; pointer-events: none; opacity: 0.88; }
         .btn-processing::after {
             content: '';
@@ -784,6 +829,18 @@
                                 <label class="block text-xs font-bold text-slate-600 mb-1.5">ชื่อหมุด / ชื่อเส้นทาง</label>
                                 <input id="tacmap-object-name" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5">ไอคอนหมุด</label>
+                                <select id="tacmap-marker-icon" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="emergency">📍 จุดทั่วไป</option>
+                                    <option value="ambulance">🚑 จุดแพทย์</option>
+                                    <option value="fire">🚒 จุดดับเพลิง</option>
+                                    <option value="police">🚓 จุดตำรวจ</option>
+                                    <option value="staging">⛑️ จุดรวมพล</option>
+                                    <option value="warning">⚠️ จุดเตือนภัย</option>
+                                </select>
+                                <p class="text-[11px] text-slate-400 mt-1.5">ใช้ตอนเพิ่มหมุดใหม่ และเปลี่ยนได้ภายหลังจากรายการหมุดด้านล่าง</p>
+                            </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <button onclick="handleTacMapEnableAddMarkerMode()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
                                     <i data-lucide="map-pinned" class="w-4 h-4"></i> เพิ่มหมุด
@@ -1394,6 +1451,14 @@
         ]);
         const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState']);
         const TACMAP_ROUTE_COLORS = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626', '#0891b2'];
+        const TACMAP_MARKER_ICON_OPTIONS = [
+            { id: 'emergency', label: 'จุดทั่วไป', emoji: '📍', markerClass: 'is-emergency' },
+            { id: 'ambulance', label: 'จุดแพทย์', emoji: '🚑', markerClass: 'is-ambulance' },
+            { id: 'fire', label: 'จุดดับเพลิง', emoji: '🚒', markerClass: 'is-fire' },
+            { id: 'police', label: 'จุดตำรวจ', emoji: '🚓', markerClass: 'is-police' },
+            { id: 'staging', label: 'จุดรวมพล', emoji: '⛑️', markerClass: 'is-staging' },
+            { id: 'warning', label: 'จุดเตือนภัย', emoji: '⚠️', markerClass: 'is-warning' }
+        ];
 
         const TAB_ACCESS_BY_ROLE = {
             Admin: ['home', 'dashboard', 'ics', 'personnel', 'zone', 'tacmap', 'logs', 'radio', 'users'],
@@ -2027,6 +2092,42 @@
             return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
         }
 
+        function normalizeTacMapMarkerIcon(iconId) {
+            const normalized = String(iconId || '').trim();
+            return TACMAP_MARKER_ICON_OPTIONS.some((item) => item.id === normalized) ? normalized : TACMAP_MARKER_ICON_OPTIONS[0].id;
+        }
+
+        function getTacMapMarkerIconMeta(iconId) {
+            const normalized = normalizeTacMapMarkerIcon(iconId);
+            return TACMAP_MARKER_ICON_OPTIONS.find((item) => item.id === normalized) || TACMAP_MARKER_ICON_OPTIONS[0];
+        }
+
+        function renderTacMapMarkerIconSelectOptions(selectedIconId) {
+            const selected = normalizeTacMapMarkerIcon(selectedIconId);
+            return TACMAP_MARKER_ICON_OPTIONS.map((item) => `<option value="${item.id}"${item.id === selected ? ' selected' : ''}>${item.emoji} ${escapeHtml(item.label)}</option>`).join('');
+        }
+
+        function getTacMapMarkerListIconHtml(iconId) {
+            const meta = getTacMapMarkerIconMeta(iconId);
+            return `<span class="tacmap-marker-icon-chip ${meta.markerClass}" title="${escapeHtml(meta.label)}">${meta.emoji}</span>`;
+        }
+
+        function createTacMapMarkerDivIcon(iconId) {
+            const meta = getTacMapMarkerIconMeta(iconId);
+            return L.divIcon({
+                className: 'tacmap-custom-marker',
+                html: `<div class="tacmap-marker-pin ${meta.markerClass}" title="${escapeHtml(meta.label)}"><span>${meta.emoji}</span></div>`,
+                iconSize: [38, 38],
+                iconAnchor: [19, 34],
+                popupAnchor: [0, -30]
+            });
+        }
+
+        function getTacMapMarkerPopupHtml(marker) {
+            const meta = getTacMapMarkerIconMeta(marker && marker.icon);
+            return `<div style="min-width:140px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span>${meta.emoji}</span><b>${escapeHtml(marker.name)}</b></div><span style="font-size:11px;color:#475569">${escapeHtml(meta.label)}<br>Lat: ${Number(marker.lat).toFixed(5)}<br>Lng: ${Number(marker.lng).toFixed(5)}</span></div>`;
+        }
+
         function normalizeTacMapMarkers(rawMarkers) {
             const list = Array.isArray(rawMarkers) ? rawMarkers : [];
             return list
@@ -2037,6 +2138,7 @@
                     return {
                         id: String(marker.id || generateTacMapObjectId('marker_' + index)),
                         name: String(marker.name || `หมุด ${index + 1}`).trim() || `หมุด ${index + 1}`,
+                        icon: normalizeTacMapMarkerIcon(marker && marker.icon),
                         lat: lat,
                         lng: lng
                     };
@@ -2475,6 +2577,10 @@
             return String(document.getElementById('tacmap-object-name')?.value || '').trim();
         }
 
+        function getTacMapMarkerInputIconValue() {
+            return normalizeTacMapMarkerIcon(document.getElementById('tacmap-marker-icon')?.value || '');
+        }
+
         function setTacMapInteractionMode(mode) {
             tacMapInteractionMode = mode || 'default';
             const badge = document.getElementById('tacmap-mode-badge');
@@ -2507,15 +2613,25 @@
             if (markersList) {
                 markersList.innerHTML = state.markers.length > 0 ? state.markers.map((marker) => `
                     <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
-                        <div class="flex items-center justify-between gap-2">
-                            <button onclick="handleTacMapFocusMarker('${marker.id}')" class="text-left flex-1 min-w-0">
-                                <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(marker.name)}</div>
-                                <div class="text-[10px] text-slate-400 font-mono truncate">${Number(marker.lat).toFixed(5)}, ${Number(marker.lng).toFixed(5)}</div>
+                        <div class="flex items-start justify-between gap-2">
+                            <button onclick="handleTacMapFocusMarker('${marker.id}')" class="text-left flex-1 min-w-0 flex items-start gap-2">
+                                ${getTacMapMarkerListIconHtml(marker.icon)}
+                                <span class="min-w-0 flex-1">
+                                    <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(marker.name)}</div>
+                                    <div class="text-[10px] text-slate-400 truncate">${escapeHtml(getTacMapMarkerIconMeta(marker.icon).label)}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono truncate">${Number(marker.lat).toFixed(5)}, ${Number(marker.lng).toFixed(5)}</div>
+                                </span>
                             </button>
                             <div class="flex items-center gap-1">
                                 <button onclick="handleTacMapRenameMarker('${marker.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="handleTacMapDeleteMarker('${marker.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
+                        </div>
+                        <div class="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                            <select onchange="handleTacMapChangeMarkerIcon('${marker.id}', this.value)" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-white text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+                                ${renderTacMapMarkerIconSelectOptions(marker.icon)}
+                            </select>
+                            <button onclick="handleTacMapRenameMarker('${marker.id}')" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-600">เปลี่ยนชื่อ</button>
                         </div>
                     </div>
                 `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีหมุดภาคสนาม</div>';
@@ -2558,8 +2674,8 @@
             });
 
             state.markers.forEach((marker) => {
-                const layer = L.marker([marker.lat, marker.lng], { draggable: true }).addTo(tacMapMarkersLayerGroup);
-                layer.bindPopup(`<b>${escapeHtml(marker.name)}</b><br><span style="font-size:11px">Lat: ${Number(marker.lat).toFixed(5)}<br>Lng: ${Number(marker.lng).toFixed(5)}</span>`);
+                const layer = L.marker([marker.lat, marker.lng], { draggable: true, icon: createTacMapMarkerDivIcon(marker.icon) }).addTo(tacMapMarkersLayerGroup);
+                layer.bindPopup(getTacMapMarkerPopupHtml(marker));
                 layer.on('dragend', function(ev) {
                     const latlng = ev.target.getLatLng();
                     const nextState = getTacMapIncidentState(appData.activeIncident.id);
@@ -2695,7 +2811,8 @@
             if (tacMapInteractionMode === 'add-marker') {
                 const state = getTacMapIncidentState(appData.activeIncident.id);
                 const name = getTacMapNameInputValue() || `หมุด ${state.markers.length + 1}`;
-                state.markers.push({ id: generateTacMapObjectId('marker'), name: name, lat: latlng.lat, lng: latlng.lng });
+                const icon = getTacMapMarkerInputIconValue();
+                state.markers.push({ id: generateTacMapObjectId('marker'), name: name, icon: icon, lat: latlng.lat, lng: latlng.lng });
                 state.updatedAt = getThTime();
                 state.updatedBy = currentUser ? currentUser.name : 'system';
                 upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
@@ -2735,6 +2852,20 @@
             const nextName = prompt('แก้ไขชื่อหมุด', marker.name || '');
             if (nextName === null) return;
             marker.name = String(nextName).trim() || marker.name;
+            state.updatedAt = getThTime();
+            state.updatedBy = currentUser ? currentUser.name : 'system';
+            upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
+            renderTacMapObjectsOnMap();
+            renderTacMapObjectLists();
+            scheduleTacMapStateSync(appData.activeIncident.id);
+        }
+
+        function handleTacMapChangeMarkerIcon(markerId, nextIconId) {
+            if (!appData.activeIncident) return;
+            const state = getTacMapIncidentState(appData.activeIncident.id);
+            const marker = state.markers.find((item) => item.id === markerId);
+            if (!marker) return;
+            marker.icon = normalizeTacMapMarkerIcon(nextIconId);
             state.updatedAt = getThTime();
             state.updatedBy = currentUser ? currentUser.name : 'system';
             upsertLocalTacMapRecord(appData.activeIncident.id, state, true);
