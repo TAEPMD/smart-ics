@@ -109,18 +109,34 @@
             right: 20px;
             width: 380px;
             max-height: 85vh;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.5);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(15, 23, 42, 0.12), 0 0 1px rgba(15, 23, 42, 0.05);
             z-index: 60;
             overflow-y: auto;
-            padding: 16px;
-            transition: all 0.3s ease;
+            padding: 20px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(226, 232, 240, 0.6) transparent;
+        }
+        .tacmap-floating-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .tacmap-floating-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .tacmap-floating-panel::-webkit-scrollbar-thumb {
+            background: rgba(226, 232, 240, 0.6);
+            border-radius: 3px;
+        }
+        .tacmap-floating-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(203, 213, 225, 0.8);
         }
         .tacmap-floating-panel.collapsed {
             width: auto;
@@ -134,8 +150,9 @@
             border: none;
             box-shadow: none;
             overflow: visible;
+            gap: 0;
         }
-        .tacmap-floating-panel.collapsed > * {
+        .tacmap-floating-panel.collapsed > *:not(.tacmap-toggle-btn) {
             display: none;
         }
         .tacmap-floating-panel.collapsed .tacmap-toggle-btn {
@@ -146,43 +163,328 @@
             top: 12px;
             right: 12px;
             display: none;
-            width: 44px;
-            height: 44px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: none;
+            border-radius: 14px;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 22px;
+            color: white;
             z-index: 61;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            font-weight: bold;
+            letter-spacing: 1px;
         }
         .tacmap-floating-panel:not(.collapsed) .tacmap-toggle-btn {
             display: flex;
+            position: static;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
         }
         .tacmap-toggle-btn:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
         }
         .tacmap-toggle-btn:active {
             transform: scale(0.95);
         }
-        .tacmap-panel-section {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 14px;
-        }
-        .tacmap-panel-section:first-child {
-            border-top: 0;
-            padding-top: 0;
-        }
         .tacmap-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+            margin-bottom: 8px;
+        }
+        .tacmap-panel-header-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .tacmap-panel-header-icon.blue {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(29, 78, 216, 0.15) 100%);
+            color: #1d4ed8;
+        }
+        .tacmap-panel-header-icon.red {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+            color: #dc2626;
+        }
+        .tacmap-panel-header-icon.emerald {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+            color: #059669;
+        }
+        .tacmap-panel-header-icon.amber {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            color: #d97706;
+        }
+        .tacmap-panel-header-title {
+            flex: 1;
+            font-weight: 700;
+            font-size: 14px;
+            color: #1e293b;
+            letter-spacing: 0.3px;
+        }
+        .tacmap-panel-header-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            background: rgba(226, 232, 240, 0.5);
+            color: #475569;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .tacmap-panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.5) 0%, rgba(241, 245, 249, 0.5) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.4);
+            transition: all 0.2s;
+        }
+        .tacmap-panel-section:hover {
+            border-color: rgba(226, 232, 240, 0.6);
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.7) 0%, rgba(241, 245, 249, 0.7) 100%);
+        }
+        .tacmap-panel-section.highlight {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.08) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .tacmap-input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .tacmap-input-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .tacmap-input-field input,
+        .tacmap-input-field select {
+            padding: 10px 14px;
+            border: 1.5px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .tacmap-input-field input:focus,
+        .tacmap-input-field select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .tacmap-button-group {
+            display: grid;
+            gap: 10px;
+            grid-auto-flow: row;
+        }
+        .tacmap-button-group.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .tacmap-button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8;
-            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        .tacmap-button:active {
+            transform: scale(0.98);
+        }
+        .tacmap-button.primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .tacmap-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+        }
+        .tacmap-button.secondary {
+            background: linear-gradient(135deg, rgba(3, 102, 214, 0.12) 0%, rgba(29, 78, 216, 0.12) 100%);
+            color: #1d4ed8;
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+        }
+        .tacmap-button.secondary:hover {
+            background: linear-gradient(135deg, rgba(3, 102, 214, 0.18) 0%, rgba(29, 78, 216, 0.18) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .tacmap-button.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .tacmap-button.success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+        }
+        .tacmap-button.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+            color: #dc2626;
+            border: 1.5px solid rgba(239, 68, 68, 0.3);
+        }
+        .tacmap-button.danger:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(220, 38, 38, 0.18) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+        }
+        .tacmap-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            border-radius: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .tacmap-list-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+        .tacmap-list-item-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .tacmap-list-item-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .tacmap-list-item-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .tacmap-list-item-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tacmap-list-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .tacmap-icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(226, 232, 240, 0.5);
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .tacmap-icon-btn:hover {
+            background: rgba(226, 232, 240, 0.8);
+            color: #1e293b;
+        }
+        .tacmap-range-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tacmap-range-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .tacmap-range-label {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .tacmap-range-value {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.4);
+            font-variant-numeric: tabular-nums;
+            min-width: 60px;
+            text-align: center;
+        }
+        input[type="range"] {
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, rgba(226, 232, 240, 0.3) 0%, rgba(226, 232, 240, 0.5) 100%);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+            border: 2px solid white;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
         }
         .tacmap-map-shell {
             position: relative;
@@ -938,128 +1240,130 @@
                         <button class="tacmap-toggle-btn" onclick="handleTacMapTogglePanel()" title="ปิด/เปิดควบคุม">
                             <span id="tacmap-toggle-icon">✕</span>
                         </button>
-                        <div class="tacmap-panel-section space-y-3">
-                            <div class="flex items-center justify-between gap-2">
-                                <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
-                                    <span class="bg-red-100 text-red-600 rounded-lg p-1.5"><i data-lucide="siren" class="w-4 h-4"></i></span>
-                                    จุดเกิดเหตุหลัก
-                                </h3>
-                                <span id="tacmap-mode-badge" class="text-[10px] font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">โหมดปกติ</span>
+                        
+                        <!-- Section: Incident Location -->
+                        <div class="tacmap-panel-section">
+                            <div class="tacmap-panel-header">
+                                <div class="tacmap-panel-header-icon red">📍</div>
+                                <div class="tacmap-panel-header-title">จุดเกิดเหตุหลัก</div>
+                                <span id="tacmap-mode-badge" class="tacmap-panel-header-badge">โหมดปกติ</span>
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Latitude</label>
-                                    <input id="tacmap-lat" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="13.7563">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Longitude</label>
-                                    <input id="tacmap-lng" type="number" step="0.000001" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="100.5018">
-                                </div>
+                            <div class="tacmap-input-field">
+                                <label class="tacmap-input-label">Latitude</label>
+                                <input id="tacmap-lat" type="number" step="0.000001" placeholder="13.7563">
                             </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
-                                <button onclick="handleTacMapUseCurrentLocation()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="crosshair" class="w-4 h-4"></i> ดึงพิกัดปัจจุบัน
+                            <div class="tacmap-input-field">
+                                <label class="tacmap-input-label">Longitude</label>
+                                <input id="tacmap-lng" type="number" step="0.000001" placeholder="100.5018">
+                            </div>
+                            <div class="tacmap-button-group grid-2">
+                                <button onclick="handleTacMapUseCurrentLocation()" class="tacmap-button secondary">
+                                    <i data-lucide="crosshair" class="w-4 h-4"></i> ปัจจุบัน
                                 </button>
-                                <button onclick="handleTacMapApplyCoordinates()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="map-pin" class="w-4 h-4"></i> ปักหมุดจุดเกิดเหตุ
+                                <button onclick="handleTacMapApplyCoordinates()" class="tacmap-button primary">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i> ปักหมุด
                                 </button>
                             </div>
                         </div>
 
-                        <div class="tacmap-panel-section space-y-3">
-                            <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="text-xs font-bold text-red-600">Hot Zone</label>
-                                    <span id="tacmap-radius-hot-label" class="text-xs font-mono text-red-700 bg-red-50 px-2 py-1 rounded">300 m</span>
-                                </div>
-                                <input id="tacmap-radius-hot" type="range" min="50" max="3000" step="50" value="300" class="w-full accent-red-500" oninput="handleTacMapZoneRadiusInput('hot', this.value)">
+                        <!-- Section: Zone Radius Controls -->
+                        <div class="tacmap-panel-section">
+                            <div class="tacmap-panel-header">
+                                <div class="tacmap-panel-header-icon red">🎯</div>
+                                <div class="tacmap-panel-header-title">วง 3 ชั้น</div>
                             </div>
-                            <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="text-xs font-bold text-amber-600">Warm Zone</label>
-                                    <span id="tacmap-radius-warm-label" class="text-xs font-mono text-amber-700 bg-amber-50 px-2 py-1 rounded">800 m</span>
+                            <div class="tacmap-range-container">
+                                <div class="tacmap-range-header" style="color: #dc2626;">
+                                    <span class="tacmap-range-label">🔴 Hot Zone</span>
+                                    <span id="tacmap-radius-hot-label" class="tacmap-range-value" style="color: #dc2626; border-color: rgba(220, 38, 38, 0.2); background: rgba(220, 38, 38, 0.05);">300 m</span>
                                 </div>
-                                <input id="tacmap-radius-warm" type="range" min="100" max="5000" step="50" value="800" class="w-full accent-amber-500" oninput="handleTacMapZoneRadiusInput('warm', this.value)">
+                                <input id="tacmap-radius-hot" type="range" min="50" max="3000" step="50" value="300" oninput="handleTacMapZoneRadiusInput('hot', this.value)" style="accent-color: #dc2626;">
                             </div>
-                            <div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <label class="text-xs font-bold text-emerald-600">Cold Zone</label>
-                                    <span id="tacmap-radius-cold-label" class="text-xs font-mono text-emerald-700 bg-emerald-50 px-2 py-1 rounded">1500 m</span>
+                            <div class="tacmap-range-container">
+                                <div class="tacmap-range-header" style="color: #d97706;">
+                                    <span class="tacmap-range-label">🟠 Warm Zone</span>
+                                    <span id="tacmap-radius-warm-label" class="tacmap-range-value" style="color: #d97706; border-color: rgba(217, 119, 6, 0.2); background: rgba(217, 119, 6, 0.05);">800 m</span>
                                 </div>
-                                <input id="tacmap-radius-cold" type="range" min="200" max="8000" step="50" value="1500" class="w-full accent-emerald-500" oninput="handleTacMapZoneRadiusInput('cold', this.value)">
+                                <input id="tacmap-radius-warm" type="range" min="100" max="5000" step="50" value="800" oninput="handleTacMapZoneRadiusInput('warm', this.value)" style="accent-color: #d97706;">
                             </div>
-                            <p class="text-[11px] text-slate-400">แสดงวง 3 ชั้น: แดง (Hot), เหลือง (Warm), เขียว (Cold) และปรับรัศมีได้แยกกัน</p>
+                            <div class="tacmap-range-container">
+                                <div class="tacmap-range-header" style="color: #059669;">
+                                    <span class="tacmap-range-label">🟢 Cold Zone</span>
+                                    <span id="tacmap-radius-cold-label" class="tacmap-range-value" style="color: #059669; border-color: rgba(5, 150, 105, 0.2); background: rgba(5, 150, 105, 0.05);">1500 m</span>
+                                </div>
+                                <input id="tacmap-radius-cold" type="range" min="200" max="8000" step="50" value="1500" oninput="handleTacMapZoneRadiusInput('cold', this.value)" style="accent-color: #059669;">
+                            </div>
                         </div>
 
-                        <div class="tacmap-panel-section space-y-3">
-                            <div class="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 space-y-3">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div>
-                                        <h4 class="text-xs font-black uppercase tracking-wider text-emerald-700">เพิ่มหมุดภาคสนาม</h4>
-                                        <p class="text-[11px] text-emerald-700/80 mt-1">ตั้งชื่อและเลือกไอคอนก่อนแตะบนแผนที่</p>
-                                    </div>
-                                    <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-white text-emerald-700 border border-emerald-200">แตะบนแผนที่</span>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">ชื่อหมุด / ชื่อเส้นทาง</label>
-                                    <input id="tacmap-object-name" type="text" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1.5">ไอคอนหมุด</label>
-                                    <select id="tacmap-marker-icon" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="emergency">📍 จุดทั่วไป</option>
-                                        <option value="ambulance">🚑 จุดแพทย์</option>
-                                        <option value="fire">🚒 จุดดับเพลิง</option>
-                                        <option value="police">🚓 จุดตำรวจ</option>
-                                        <option value="staging">⛑️ จุดรวมพล</option>
-                                        <option value="warning">⚠️ จุดเตือนภัย</option>
-                                    </select>
-                                </div>
+                        <!-- Section: Add Markers/Routes -->
+                        <div class="tacmap-panel-section highlight">
+                            <div class="tacmap-panel-header">
+                                <div class="tacmap-panel-header-icon emerald">✨</div>
+                                <div class="tacmap-panel-header-title">เพิ่มปักหมุด/เส้นทาง</div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="handleTacMapEnableAddMarkerMode()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
+                            <div class="tacmap-input-field">
+                                <label class="tacmap-input-label">ชื่อหมุด / ชื่อเส้นทาง</label>
+                                <input id="tacmap-object-name" type="text" placeholder="เช่น จุดรวมพล A, เส้นทางอพยพ 1">
+                            </div>
+                            <div class="tacmap-input-field">
+                                <label class="tacmap-input-label">ไอคอนหมุด</label>
+                                <select id="tacmap-marker-icon">
+                                    <option value="emergency">📍 จุดทั่วไป</option>
+                                    <option value="ambulance">🚑 จุดแพทย์</option>
+                                    <option value="fire">🚒 จุดดับเพลิง</option>
+                                    <option value="police">🚓 จุดตำรวจ</option>
+                                    <option value="staging">⛑️ จุดรวมพล</option>
+                                    <option value="warning">⚠️ จุดเตือนภัย</option>
+                                </select>
+                            </div>
+                            <div class="tacmap-button-group grid-2">
+                                <button onclick="handleTacMapEnableAddMarkerMode()" class="tacmap-button success">
                                     <i data-lucide="map-pinned" class="w-4 h-4"></i> เพิ่มหมุด
                                 </button>
-                                <button onclick="handleTacMapStartRouteMode()" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="route" class="w-4 h-4"></i> ลากเส้นทาง
+                                <button onclick="handleTacMapStartRouteMode()" class="tacmap-button secondary">
+                                    <i data-lucide="route" class="w-4 h-4"></i> ลากเส้น
                                 </button>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="handleTacMapFinishRoute()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="check-check" class="w-4 h-4"></i> บันทึกเส้นทาง
+                            <div class="tacmap-button-group grid-2">
+                                <button onclick="handleTacMapFinishRoute()" class="tacmap-button primary">
+                                    <i data-lucide="check-check" class="w-4 h-4"></i> บันทึก
                                 </button>
-                                <button onclick="handleTacMapCancelMode()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold px-3 py-2.5 rounded-xl active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="x-circle" class="w-4 h-4"></i> ยกเลิกโหมด
+                                <button onclick="handleTacMapCancelMode()" class="tacmap-button danger">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i> ยกเลิก
                                 </button>
                             </div>
-                            <p class="text-[11px] text-slate-400">เลือกโหมดแล้วคลิกบนแผนที่เพื่อวางหมุดหรือเพิ่มจุดของเส้นทาง เส้นทางที่สร้างจะบันทึกและ sync ทุกเครื่อง</p>
                         </div>
 
-                        <div class="tacmap-panel-section grid grid-cols-2 gap-2">
-                            <button onclick="handleTacMapResetPin()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl active:scale-95 flex items-center justify-center gap-1">
-                                <i data-lucide="map-pin-off" class="w-3.5 h-3.5"></i> รีเซ็ตหมุด
-                            </button>
-                            <button onclick="handleTacMapResetRadius()" class="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-xs font-bold px-3 py-2 rounded-xl active:scale-95 flex items-center justify-center gap-1">
-                                <i data-lucide="circle-slash" class="w-3.5 h-3.5"></i> รีเซ็ตรัศมี
-                            </button>
+                        <!-- Section: Reset Buttons -->
+                        <div class="tacmap-panel-section">
+                            <div class="tacmap-button-group grid-2">
+                                <button onclick="handleTacMapResetPin()" class="tacmap-button danger">
+                                    <i data-lucide="map-pin-off" class="w-4 h-4"></i> รีเซ็ตหมุด
+                                </button>
+                                <button onclick="handleTacMapResetRadius()" class="tacmap-button secondary">
+                                    <i data-lucide="circle-slash" class="w-4 h-4"></i> รีเซ็ตรัศมี
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="tacmap-panel-section space-y-3">
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">หมุดภาคสนาม</h4>
-                                    <span id="tacmap-markers-count" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-full">0 จุด</span>
-                                </div>
-                                <div id="tacmap-markers-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                        <!-- Section: Markers List -->
+                        <div class="tacmap-panel-section">
+                            <div class="tacmap-panel-header">
+                                <div class="tacmap-panel-header-icon blue">📌</div>
+                                <div class="tacmap-panel-header-title">หมุดภาคสนาม</div>
+                                <span id="tacmap-markers-count" class="tacmap-panel-header-badge">0 จุด</span>
                             </div>
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">เส้นทางปฏิบัติการ</h4>
-                                    <span id="tacmap-routes-count" class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-full">0 เส้น</span>
-                                </div>
-                                <div id="tacmap-routes-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                            <div id="tacmap-markers-list" class="space-y-2" style="max-height: 140px; overflow-y: auto;"></div>
+                        </div>
+
+                        <!-- Section: Routes List -->
+                        <div class="tacmap-panel-section">
+                            <div class="tacmap-panel-header">
+                                <div class="tacmap-panel-header-icon amber">🛣️</div>
+                                <div class="tacmap-panel-header-title">เส้นทางปฏิบัติการ</div>
+                                <span id="tacmap-routes-count" class="tacmap-panel-header-badge">0 เส้น</span>
                             </div>
+                            <div id="tacmap-routes-list" class="space-y-2" style="max-height: 140px; overflow-y: auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -1676,12 +1980,12 @@
         const MIRROR_EXCLUDED_METHODS = new Set(['updateTacMapState']);
         const TACMAP_ROUTE_COLORS = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626', '#0891b2'];
         const TACMAP_MARKER_ICON_OPTIONS = [
-            { id: 'emergency', label: 'จุดทั่วไป', emoji: '📍', markerClass: 'is-emergency' },
-            { id: 'ambulance', label: 'จุดแพทย์', emoji: '🚑', markerClass: 'is-ambulance' },
-            { id: 'fire', label: 'จุดดับเพลิง', emoji: '🚒', markerClass: 'is-fire' },
-            { id: 'police', label: 'จุดตำรวจ', emoji: '🚓', markerClass: 'is-police' },
-            { id: 'staging', label: 'จุดรวมพล', emoji: '⛑️', markerClass: 'is-staging' },
-            { id: 'warning', label: 'จุดเตือนภัย', emoji: '⚠️', markerClass: 'is-warning' }
+            { id: 'emergency', label: 'จุดทั่วไป', emoji: '📍', markerClass: 'is-emergency', bgGradient: '#fee2e2, #fca5a5' },
+            { id: 'ambulance', label: 'จุดแพทย์', emoji: '🚑', markerClass: 'is-ambulance', bgGradient: '#dbeafe, #93c5fd' },
+            { id: 'fire', label: 'จุดดับเพลิง', emoji: '🚒', markerClass: 'is-fire', bgGradient: '#ffedd5, #fdba74' },
+            { id: 'police', label: 'จุดตำรวจ', emoji: '🚓', markerClass: 'is-police', bgGradient: '#e0f2fe, #7dd3fc' },
+            { id: 'staging', label: 'จุดรวมพล', emoji: '⛑️', markerClass: 'is-staging', bgGradient: '#dcfce7, #86efac' },
+            { id: 'warning', label: 'จุดเตือนภัย', emoji: '⚠️', markerClass: 'is-warning', bgGradient: '#fef3c7, #fcd34d' }
         ];
 
         const TAB_ACCESS_BY_ROLE = {
@@ -2898,43 +3202,57 @@
             if (routesCount) routesCount.innerText = `${state.routes.length} เส้น`;
             if (markersList) {
                 markersList.innerHTML = state.markers.length > 0 ? state.markers.map((marker) => `
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
-                        <div class="flex items-start justify-between gap-2">
-                            <button onclick="handleTacMapFocusMarker('${marker.id}')" class="text-left flex-1 min-w-0 flex items-start gap-2">
-                                ${getTacMapMarkerListIconHtml(marker.icon)}
-                                <span class="min-w-0 flex-1">
-                                    <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(marker.name)}</div>
-                                    <div class="text-[10px] text-slate-400 truncate">${escapeHtml(getTacMapMarkerIconMeta(marker.icon).label)}</div>
-                                    <div class="text-[10px] text-slate-400 font-mono truncate">${Number(marker.lat).toFixed(5)}, ${Number(marker.lng).toFixed(5)}</div>
-                                </span>
-                            </button>
-                            <div class="flex items-center gap-1">
-                                <button onclick="openTacMapMarkerModal('${marker.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="handleTacMapDeleteMarker('${marker.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <div class="tacmap-list-item" onclick="handleTacMapFocusMarker('${marker.id}')">
+                        <div class="tacmap-list-item-content">
+                            <div class="tacmap-list-item-icon" style="background: linear-gradient(135deg, ${getTacMapMarkerIconMeta(marker.icon).bgGradient || 'rgba(226, 232, 240, 0.5)'} 0%, rgba(15, 23, 42, 0.05) 100%);">
+                                ${getTacMapMarkerIconMeta(marker.icon).emoji}
+                            </div>
+                            <div class="tacmap-list-item-text">
+                                <div class="tacmap-list-item-name">${escapeHtml(marker.name)}</div>
+                                <div style="font-size: 11px; color: #94a3b8; display: flex; gap: 6px;">
+                                    <span>${getTacMapMarkerIconMeta(marker.icon).label}</span>
+                                    <span>•</span>
+                                    <span>${Number(marker.lat).toFixed(4)}°</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="mt-2 flex items-center justify-between gap-2 border-t border-slate-200/70 pt-2">
-                            <div class="text-[11px] text-slate-400">แตะปุ่มแก้ไขเพื่อเปลี่ยนชื่อหรือไอคอนในหน้าจอเดียว</div>
-                            <button onclick="openTacMapMarkerModal('${marker.id}')" class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-600 whitespace-nowrap">แก้ไขหมุด</button>
+                        <div class="tacmap-list-item-actions">
+                            <button onclick="event.stopPropagation(); openTacMapMarkerModal('${marker.id}')" class="tacmap-icon-btn" title="แก้ไข">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); handleTacMapDeleteMarker('${marker.id}')" class="tacmap-icon-btn" style="color: #dc2626;" title="ลบ">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
-                `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีหมุดภาคสนาม</div>';
+                `).join('') : '<div style="font-size: 13px; color: #94a3b8; text-align: center; padding: 16px; background: rgba(226, 232, 240, 0.3); border-radius: 12px; border: 1px dashed rgba(226, 232, 240, 0.5);">ยังไม่มีหมุดภาคสนาม</div>';
             }
             if (routesList) {
                 routesList.innerHTML = state.routes.length > 0 ? state.routes.map((route) => `
-                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
-                        <div class="flex items-center justify-between gap-2">
-                            <button onclick="handleTacMapFocusRoute('${route.id}')" class="text-left flex-1 min-w-0">
-                                <div class="text-sm font-bold text-slate-800 truncate">${escapeHtml(route.name)}</div>
-                                <div class="text-[10px] text-slate-400">${route.points.length} จุด • สี ${escapeHtml(route.color)}</div>
-                            </button>
-                            <div class="flex items-center gap-1">
-                                <button onclick="handleTacMapRenameRoute('${route.id}')" class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="handleTacMapDeleteRoute('${route.id}')" class="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <div class="tacmap-list-item" onclick="handleTacMapFocusRoute('${route.id}')">
+                        <div class="tacmap-list-item-content">
+                            <div class="tacmap-list-item-icon" style="background: ${route.color || getTacMapRouteColor(route.id)}; opacity: 0.2;">
+                                🛣️
+                            </div>
+                            <div class="tacmap-list-item-text">
+                                <div class="tacmap-list-item-name">${escapeHtml(route.name)}</div>
+                                <div style="font-size: 11px; color: #94a3b8;">
+                                    ${route.points.length} จุด • 
+                                    <span style="display: inline-block; width: 12px; height: 12px; background: ${route.color || getTacMapRouteColor(route.id)}; border-radius: 2px; vertical-align: middle; margin-right: 3px;"></span>
+                                    ${escapeHtml(route.color)}
+                                </div>
                             </div>
                         </div>
+                        <div class="tacmap-list-item-actions">
+                            <button onclick="event.stopPropagation(); handleTacMapRenameRoute('${route.id}')" class="tacmap-icon-btn" title="แก้ไขชื่อ">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); handleTacMapDeleteRoute('${route.id}')" class="tacmap-icon-btn" style="color: #dc2626;" title="ลบ">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
-                `).join('') : '<div class="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 p-3 text-center">ยังไม่มีเส้นทางปฏิบัติการ</div>';
+                `).join('') : '<div style="font-size: 13px; color: #94a3b8; text-align: center; padding: 16px; background: rgba(226, 232, 240, 0.3); border-radius: 12px; border: 1px dashed rgba(226, 232, 240, 0.5);">ยังไม่มีเส้นทางปฏิบัติการ</div>';
             }
             createIcons();
         }
