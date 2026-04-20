@@ -2441,6 +2441,7 @@
                     Name: inc.name || '',
                     Level: Number(inc.level || 0),
                     StartTime: inc.startTime || '',
+                    StartedAtEpoch: Number.isFinite(Number(inc.startedAtEpoch)) ? Number(inc.startedAtEpoch) : null,
                     Date: inc.date || '',
                     Duration: '',
                     ClosedBy: '',
@@ -2456,7 +2457,8 @@
                 await db.collection('incidents').doc(asDocId(callArgs[0])).set({
                     Status: 'Closed',
                     Duration: callArgs[1] || '',
-                    ClosedBy: callArgs[2] || ''
+                    ClosedBy: callArgs[2] || '',
+                    ClosedAtEpoch: Number.isFinite(Number(callArgs[3])) ? Number(callArgs[3]) : null
                 }, { merge: true });
                 return true;
             }
@@ -3732,16 +3734,28 @@
 
             const parsedLevel = parseInt(safeGet(incident, ['Level', 'level'], 0), 10);
             const rawStartTime = String(safeGet(incident, ['StartTime', 'startTime'], '-')).trim();
+            const rawStartedAtEpoch = Number(safeGet(incident, ['StartedAtEpoch', 'startedAtEpoch', 'startedAt'], NaN));
+            const rawClosedAtEpoch = Number(safeGet(incident, ['ClosedAtEpoch', 'closedAtEpoch', 'closedAt'], NaN));
+            const startedAtEpoch = Number.isFinite(rawStartedAtEpoch) && rawStartedAtEpoch > 0 ? rawStartedAtEpoch : null;
+            const closedAtEpoch = Number.isFinite(rawClosedAtEpoch) && rawClosedAtEpoch > 0 ? rawClosedAtEpoch : null;
             // Normalize startTime: backend may return full datetime "yyyy-MM-dd HH:mm:ss", extract "HH:MM" only
             const startTimeMatch = rawStartTime.match(/(\d{1,2}:\d{2})/);
             const normalizedStartTime = startTimeMatch ? startTimeMatch[1] : (rawStartTime || '-');
+            const rawDuration = String(safeGet(incident, ['Duration', 'duration'], '')).trim();
+            const normalizedDuration = rawDuration || (
+                startedAtEpoch && closedAtEpoch && closedAtEpoch >= startedAtEpoch
+                    ? formatDurationFromMinutes(Math.floor((closedAtEpoch - startedAtEpoch) / 60000))
+                    : ''
+            );
             return {
                 id: rawId,
                 name: rawName,
                 level: Number.isFinite(parsedLevel) ? parsedLevel : 0,
                 startTime: normalizedStartTime,
+                startedAtEpoch,
+                closedAtEpoch,
                 date: String(safeGet(incident, ['Date', 'date'], '-')).trim() || '-',
-                duration: String(safeGet(incident, ['Duration', 'duration'], '')).trim(),
+                duration: normalizedDuration,
                 closedBy: String(safeGet(incident, ['ClosedBy', 'closedBy'], '')).trim(),
                 status: normalizeIncidentStatus(safeGet(incident, ['Status', 'status'], ''), incident),
                 safetyStatus: normalizeSafetyStatus(safeGet(incident, ['SafetyStatus', 'safetyStatus'], 'moderate')),
@@ -4510,29 +4524,41 @@
             });
         }
 
+        function formatDurationFromMinutes(totalMinutes) {
+            if (!Number.isFinite(totalMinutes) || totalMinutes < 0) return '-- ชม. -- นาที';
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return `${hours} ชม. ${minutes} นาที`;
+        }
+
+        function getDurationFromTimeString(startTime, endTime = getThTime()) {
+            const startMatch = String(startTime || '').match(/(\d{1,2}):(\d{2})/);
+            const endMatch = String(endTime || '').match(/(\d{1,2}):(\d{2})/);
+            if (!startMatch || !endMatch) return '-- ชม. -- นาที';
+
+            const startH = parseInt(startMatch[1], 10);
+            const startM = parseInt(startMatch[2], 10);
+            const endH = parseInt(endMatch[1], 10);
+            const endM = parseInt(endMatch[2], 10);
+
+            if (![startH, startM, endH, endM].every(Number.isFinite)) return '-- ชม. -- นาที';
+
+            let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            if (diffMinutes < 0) diffMinutes += 24 * 60;
+            return formatDurationFromMinutes(diffMinutes);
+        }
+
+        function getIncidentElapsedDuration(incident, endEpoch = Date.now()) {
+            const startedAtEpoch = Number(incident && incident.startedAtEpoch);
+            if (Number.isFinite(startedAtEpoch) && startedAtEpoch > 0 && Number.isFinite(endEpoch) && endEpoch >= startedAtEpoch) {
+                const elapsedMinutes = Math.floor((endEpoch - startedAtEpoch) / 60000);
+                return formatDurationFromMinutes(elapsedMinutes);
+            }
+            return getDurationFromTimeString(incident && incident.startTime ? incident.startTime : '');
+        }
+
         function getElapsedFromStart(startTime) {
-            const match = String(startTime || '').match(/(\d{1,2}):(\d{2})/);
-            if (!match) return '-- ชม. -- นาที';
-
-            const startH = parseInt(match[1], 10);
-            const startM = parseInt(match[2], 10);
-            if (!Number.isFinite(startH) || !Number.isFinite(startM)) return '-- ชม. -- นาที';
-
-            const nowHM = new Date().toLocaleTimeString('en-GB', {
-                hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok'
-            });
-            const nowMatch = nowHM.match(/(\d{1,2}):(\d{2})/);
-            if (!nowMatch) return '-- ชม. -- นาที';
-
-            const endH = parseInt(nowMatch[1], 10);
-            const endM = parseInt(nowMatch[2], 10);
-            let diffH = endH - startH;
-            let diffM = endM - startM;
-
-            if (diffM < 0) { diffM += 60; diffH -= 1; }
-            if (diffH < 0) diffH += 24;
-
-            return `${diffH} ชม. ${diffM} นาที`;
+            return getDurationFromTimeString(startTime);
         }
 
         function renderRealtimePulseStatus() {
@@ -5182,7 +5208,7 @@
                     </div>
                     <div class="text-[11px] text-slate-500 flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 font-mono">
                         <span class="flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${h.date}</span>
-                        <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ระยะเวลา ${h.duration}</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ระยะเวลา ${h.duration || '-'}</span>
                     </div>
                 </button>
             `).join('');
@@ -5262,7 +5288,7 @@
                 </div>
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center gap-1 hidden md:flex">
                     <div class="text-slate-500 text-xs font-bold flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500"></i> ดำเนินการมาแล้ว</div>
-                    <div class="text-lg font-black text-slate-800">${getElapsedFromStart(appData.activeIncident.startTime)}</div>
+                    <div class="text-lg font-black text-slate-800">${getIncidentElapsedDuration(appData.activeIncident)}</div>
                     <div class="text-[11px] text-slate-400">เริ่ม ${appData.activeIncident.startTime} น.</div>
                 </div>
                 <div class="${safetyConfig.surfaceClass} p-4 rounded-2xl shadow-sm border flex flex-col justify-center gap-2 col-span-2 md:col-span-1">
@@ -5954,6 +5980,7 @@
                 name: name,
                 level: parseInt(level),
                 startTime: getThTime(),
+                startedAtEpoch: Date.now(),
                 date: new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' }),
                 safetyStatus: 'moderate',
                 safetyUpdatedAt: getThTime(),
@@ -5990,24 +6017,15 @@
             if(!confirmClose) return;
 
             const incId = appData.activeIncident.id;
-            const rawST = appData.activeIncident.startTime || '';
-            const stMatch = rawST.match(/(\d{1,2}):(\d{2})/);
-            const startH = stMatch ? parseInt(stMatch[1]) : 0;
-            const startM = stMatch ? parseInt(stMatch[2]) : 0;
-            const [endHStr, endMStr] = getThTime().split(':');
-            const endH = parseInt(endHStr);
-            const endM = parseInt(endMStr);
-            let diffH = endH - startH;
-            let diffM = endM - startM;
-            if (diffM < 0) { diffM += 60; diffH -= 1; }
-            if (diffH < 0) diffH += 24;
-            const durationStr = `${diffH} ชม. ${diffM} นาที`;
+            const closedAtEpoch = Date.now();
+            const durationStr = getIncidentElapsedDuration(appData.activeIncident, closedAtEpoch);
 
             const finishClose = () => {
                 updateSourceRecord('incidents', (incident) => String(incident.id) === String(incId), {
                     status: 'Closed',
                     duration: durationStr,
-                    closedBy: currentUser.name
+                    closedBy: currentUser.name,
+                    closedAtEpoch
                 });
                 rebuildIncidentCollections(appData.activeIncidents.find((incident) => String(incident.id) !== String(incId))?.id || '');
 
@@ -6026,7 +6044,7 @@
             setCloseIncidentButtonsProcessing(true);
             setLoadingScreenVisible(true, CLOSING_INCIDENT_TEXT);
 
-            invokeBackendMethod('closeIncident', [incId, durationStr, currentUser.name])
+            invokeBackendMethod('closeIncident', [incId, durationStr, currentUser.name, closedAtEpoch])
                 .then(() => { finishClose(); })
                 .catch((err) => { handleCloseError(err); });
         }
