@@ -4511,9 +4511,8 @@
             const patched = [];
             appData.sourceData.incidents.forEach((incident) => {
                 if (!incident || incident.status !== 'Closed') return;
-                const startedAtEpoch = Number(incident.startedAtEpoch);
                 const closedAtEpoch = Number(incident.closedAtEpoch);
-                if (!Number.isFinite(startedAtEpoch) || !Number.isFinite(closedAtEpoch) || startedAtEpoch <= 0 || closedAtEpoch <= 0) {
+                if (!Number.isFinite(closedAtEpoch) || closedAtEpoch <= 0) {
                     return;
                 }
 
@@ -4629,6 +4628,30 @@
             return `${hours} ชม. ${minutes} นาที`;
         }
 
+        function inferStartedAtEpochFromIncident(incident) {
+            if (!incident) return null;
+
+            const startMatch = String(incident.startTime || '').match(/(\d{1,2}):(\d{2})/);
+            if (!startMatch) return null;
+
+            const hour = parseInt(startMatch[1], 10);
+            const minute = parseInt(startMatch[2], 10);
+            if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+
+            const idMatch = String(incident.id || '').match(/ICS-(\d{8})-/i);
+            if (!idMatch) return null;
+
+            const ymd = idMatch[1];
+            const year = parseInt(ymd.slice(0, 4), 10);
+            const month = parseInt(ymd.slice(4, 6), 10);
+            const day = parseInt(ymd.slice(6, 8), 10);
+            if (![year, month, day].every(Number.isFinite)) return null;
+
+            // Bangkok local time (UTC+7) -> epoch milliseconds.
+            const epoch = Date.UTC(year, month - 1, day, hour - 7, minute, 0, 0);
+            return Number.isFinite(epoch) ? epoch : null;
+        }
+
         function getDurationFromTimeString(startTime, endTime = getThTime()) {
             const startMatch = String(startTime || '').match(/(\d{1,2}):(\d{2})/);
             const endMatch = String(endTime || '').match(/(\d{1,2}):(\d{2})/);
@@ -4647,7 +4670,9 @@
         }
 
         function getIncidentElapsedDuration(incident, endEpoch = Date.now()) {
-            const startedAtEpoch = Number(incident && incident.startedAtEpoch);
+            const rawStartedAtEpoch = Number(incident && incident.startedAtEpoch);
+            const inferredStartedAtEpoch = inferStartedAtEpochFromIncident(incident);
+            const startedAtEpoch = Number.isFinite(rawStartedAtEpoch) && rawStartedAtEpoch > 0 ? rawStartedAtEpoch : inferredStartedAtEpoch;
             if (Number.isFinite(startedAtEpoch) && startedAtEpoch > 0 && Number.isFinite(endEpoch) && endEpoch >= startedAtEpoch) {
                 const elapsedMinutes = Math.floor((endEpoch - startedAtEpoch) / 60000);
                 return formatDurationFromMinutes(elapsedMinutes);
